@@ -1,9 +1,9 @@
+
+
+
 import pymongo, os
 from config import DB_URI, DB_NAME
 
-db = mongo_client["Cluster0"]
-token_collection = db["tokens"]
-user_collection = db["users"]
 
 dbclient = pymongo.MongoClient(DB_URI)
 database = dbclient[DB_NAME]

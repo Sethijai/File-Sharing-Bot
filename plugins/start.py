@@ -108,7 +108,7 @@ async def process_verified_token(client: Client, message: Message, token):
 async def provide_verification_link(client: Client, message: Message):
     bot_username = (await client.get_me()).username
     token = generate_token()
-    save_token_to_db(message.from_user.id, token)
+    await save_token_to_db(message.from_user.id, token)
     token_encoded = quote_plus(token)
     link = f"https://t.me/{bot_username}?start=token_{token_encoded}"
     await message.reply_text(f'Use this link to verify: {link}')

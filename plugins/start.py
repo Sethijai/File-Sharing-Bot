@@ -37,15 +37,7 @@ def save_token_to_db(user_id, token):
     token_doc = {'user_id': user_id, 'token': token}
     collection.insert_one(token_doc)
 
-# Function to handle /start command
-async def provide_verification_link(client: Client, message: Message):
-    user_id = message.from_user.id
-    token = generate_token()
-    save_token_to_db(user_id, token)
-    bot_username = client.get_me().username
-    token_encoded = quote_plus(token)
-    link = f"https://t.me/{bot_username}?start=token_{token_encoded}"
-    await message.reply_text(f'Use this link to verify: {link}')
+
 
 # Function to verify token
 def verify_token(user_id, token):
@@ -110,7 +102,6 @@ async def process_verified_token(client: Client, message: Message, token):
         except:
             pass
 
-# Main code
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
@@ -125,8 +116,17 @@ async def start_command(client: Client, message: Message):
             # Token is not valid or verified, provide instructions
             await message.reply_text("Invalid token or not verified.")
     else:
-        # User didn't provide a token, provide the verification link
+        # User didn't provide a token, provide the verification link instead
         await provide_verification_link(client, message)
+
+async def provide_verification_link(client: Client, message: Message):
+    bot_username = (await client.get_me()).username
+    token = generate_token()
+    save_token_to_db(message.from_user.id, token)
+    token_encoded = quote_plus(token)
+    link = f"https://t.me/{bot_username}?start=token_{token_encoded}"
+    await message.reply_text(f'Use this link to verify: {link}')
+
 
 
 #=====================================================================================##

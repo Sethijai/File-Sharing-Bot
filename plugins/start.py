@@ -170,17 +170,17 @@ async def check_token(bot, userid, token):
     else:
         return False
 
-async def get_token(bot, userid):
-    user = await bot.get_users(userid)
+async def get_token(bot, user_id):
+    user = await bot.get_users(user_id)
     if not await tech_vj.is_user_exist(user.id):
         await tech_vj.add_user(user.id, user.first_name)
         await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
-    token = await tech_vj.create_user_token(user.id)
-    link = f"https://t.me/{bot.username}?start={user.id}-{token}"
+    token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
+    link = f"https://t.me/{bot.username}?start={user_id}-{token}"  # Adjust the link format here
     TOKENS[user.id] = {token: False}
     shortened_verify_url = await get_verify_shorted_link(user.id, token, link)  # Pass 'link' argument here
     return token, str(shortened_verify_url)
-
+    
 async def verify_user(bot, userid, token):
     user = await bot.get_users(userid)
     if not await tech_vj.is_user_exist(user.id):

@@ -135,6 +135,9 @@ async def check_verification(bot, userid):
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
+    user_id = message.from_user.id
+    shortened_url = await get_verify_shortened_link(user_id)
+    await message.reply(f"Click on the link to verify: {shortened_url}")
     id = message.from_user.id
     if not await present_user(id):
         try:
@@ -221,6 +224,23 @@ async def start_command(client: Client, message: Message):
             quote = True
         )
         return
+        
+# Token verification
+@Bot.on_message(filters.private)
+async def handle_verification_message(client, message):
+    user_id = message.from_user.id
+    if user_id in TOKENS.values():
+        token = message.text.strip()
+        if token in TOKENS.values():
+            verified_user_id = [k for k, v in TOKENS.items() if v == token][0]
+            VERIFIED[verified_user_id] = True
+            await message.reply("Verification successful!")
+        else:
+            await message.reply("Invalid token. Please try again.")
+    else:
+        await message.reply("Please start with /start command to receive the verification link.")
+
+# Other commands and functions...
 
     
 #=====================================================================================##

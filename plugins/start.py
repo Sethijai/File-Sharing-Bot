@@ -22,6 +22,7 @@ from bot import Bot
 from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
+from utils import verify_user, check_token
 
 TOKENS = {}
 VERIFIED = {}
@@ -179,55 +180,34 @@ async def check_verification(bot, userid):
             return True
     else:
         return False
+        
+@Bot.on_message(filters.private & filters.command(["start"]))
+async def start(bot, update):
 
-@Bot.on_message(filters.command('start') & filters.private & subscribed)
-async def start_command(client: Client, message: Message):
-    id = message.from_user.id
-    
-    # Check if the user is already verified
-    token_verified = await check_verification(client, id)
-    
-    if token_verified:
-        # If user is already verified, inform and exit
-        await message.reply("Welcome back! You are already verified.")
-        return
-    
-    # Get the token for the user
-    token, verification_link = await get_token(client, id)
-    
-    # If a token is provided in the message, verify it
-    if len(message.command) > 1:
-        provided_token = message.command[1]
-        is_valid = await is_token_valid(id, provided_token)
-        if is_valid:
-            # If the provided token is valid, verify the user and inform them
-            await verify_user(client, id, provided_token)
-            await message.reply("Your account has been verified successfully. You can now use the bot.")
-            return
+    data = update.command[1]
+
+    if data.split("-", 1)[0] == "verify":
+        userid = data.split("-", 2)[1]
+        token = data.split("-", 3)[2]
+        if str(update.from_user.id) != str(userid):
+            return await update.reply_text(
+                text="<b>ᴇxᴘɪʀᴇᴅ ʟɪɴᴋ ᴏʀ ɪɴᴠᴀʟɪᴅ ʟɪɴᴋ !</b>",
+                protect_content=True
+            )
+        is_valid = await check_token(bot, userid, token)
+        if is_valid == True:
+            await update.reply_text(
+                text=f"<b>ʜᴇʟʟᴏ {update.from_user.mention} 👋,\nʏᴏᴜ ᴀʀᴇ sᴜᴄᴄᴇssғᴜʟʟʏ ᴠᴇʀɪғɪᴇᴅ !\n\nɴᴏᴡ ʏᴏᴜ ʜᴀᴠᴇ ᴜɴʟɪᴍɪᴛᴇᴅ ᴀᴄᴄᴇss ғᴏʀ ᴀʟʟ ᴜʀʟ ᴜᴘʟᴏᴀᴅɪɴɢ ᴛɪʟʟ ᴛᴏᴅᴀʏ ᴍɪᴅɴɪɢʜᴛ.</b>",
+                protect_content=True
+            )
+            await verify_user(bot, userid, token)
         else:
-            # If the provided token is invalid, inform the user and exit
-            await message.reply("Invalid token. Please use the verification link to get a valid token.")
-            return
-    
-    # Send the verification link to the user
-    await message.reply(f"Please verify your account by clicking on the link: {verification_link}")
+            return await process_start_command(bot, update)
 
-    # Add user to the database if not already present
-    if not await present_user(id):
-        try:
-            await add_user(id)
-        except:
-            pass
-    
-    # Check if the token is verified
-    token_verified = await check_verification(client, id)
-    if not token_verified:
-        # If token is not verified, stop execution
-        return
-
-    # Token is verified, continue with the regular start command logic
-    text = message.text
-    if len(text) > 7:
+async def process_start_command(bot, update):
+    data = update.command[1]
+    text = data
+    if len(text)>7:
         try:
             base64_string = text.split(" ", 1)[1]
         except:
@@ -236,12 +216,12 @@ async def start_command(client: Client, message: Message):
         argument = string.split("-")
         if len(argument) == 3:
             try:
-                start = int(int(argument[1]) / abs(client.db_channel.id))
-                end = int(int(argument[2]) / abs(client.db_channel.id))
+                start = int(int(argument[1]) / abs(bot.db_channel.id))
+                end = int(int(argument[2]) / abs(bot.db_channel.id))
             except:
                 return
             if start <= end:
-                ids = range(start, end+1)
+                ids = range(start,end+1)
             else:
                 ids = []
                 i = start
@@ -252,20 +232,21 @@ async def start_command(client: Client, message: Message):
                         break
         elif len(argument) == 2:
             try:
-                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
+                ids = [int(int(argument[1]) / abs(bot.db_channel.id))]
             except:
                 return
-        temp_msg = await message.reply("Please wait...")
+        temp_msg = await update.reply_text("Please wait...")
         try:
-            messages = await get_messages(client, ids)
+            messages = await get_messages(bot, ids)
         except:
-            await message.reply_text("Something went wrong..!")
+            await update.reply_text("Something went wrong..!")
             return
         await temp_msg.delete()
 
         for msg in messages:
+
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
+                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -275,39 +256,37 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             try:
-                await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                await msg.copy(chat_id=update.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
                 await asyncio.sleep(0.5)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                await msg.copy(chat_id=update.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
             except:
                 pass
-
-        # Save verified user information into the database
-        await tech_vj.verify_user_token(id, existing_token)
         return
     else:
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data="about"),
+                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
                     InlineKeyboardButton("🔒 unlock", url="https://shrs.link/FUmxXe")
                 ]
             ]
         )
-        await message.reply_text(
-            text=START_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username=None if not message.from_user.username else '@' + message.from_user.username,
-                mention=message.from_user.mention,
-                id=message.from_user.id
+        await update.reply_text(
+            text = START_MSG.format(
+                first = update.from_user.first_name,
+                last = update.from_user.last_name,
+                username = None if not update.from_user.username else '@' + update.from_user.username,
+                mention = update.from_user.mention,
+                id = update.from_user.id
             ),
-            reply_markup=reply_markup,
-            disable_web_page_preview=True,
-            quote=True
+            reply_markup = reply_markup,
+            disable_web_page_preview = True,
+            quote = True
         )
         return
+
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""

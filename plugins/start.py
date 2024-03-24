@@ -133,9 +133,10 @@ async def get_token(bot, user_id):
     token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
     link = f"https://t.me/{bot.username}?start={user_id}-{token}"  # Adjust the link format here
     TOKENS[user.id] = {token: False}
-    shortened_verify_url = await get_verify_shorted_link(user.id, token, link)  # Pass 'link' argument here
+    shortened_verify_url = await get_verify_shorted_link(link)  # Pass 'link' argument here
     logger.info(f"Token generated for user {user.id}: {token}")
     return token, str(shortened_verify_url)
+
 
 async def verify_user(bot, userid, token):
     user = await bot.get_users(userid)

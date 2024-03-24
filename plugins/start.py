@@ -15,7 +15,7 @@ from typing import List
 from database.users_chats_db import tech_vj
 from database.adduser import AddUser
 from translation import Translation
-
+from plugins.forcesub import handle_force_sub
 from bs4 import BeautifulSoup
 import requests
 import aiohttp

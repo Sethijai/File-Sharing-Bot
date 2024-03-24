@@ -25,7 +25,7 @@ from database.database import add_user, del_user, full_userbase, present_user
 
 TOKENS = {}
 VERIFIED = {}
-link = str(link)
+#link = str(link)#
 
 LOG_TEXT_P = """#NewUser
 ID - <code>{}</code>

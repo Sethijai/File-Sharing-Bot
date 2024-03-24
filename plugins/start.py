@@ -122,8 +122,7 @@ async def get_verify_shorted_link(link):
         except Exception as e:
             logger.error(e)
             return f'{URL}/api?api={API}&link={link}'
-
-
+            
 async def get_token(bot, user_id):
     user = await bot.get_users(user_id)
     if not await tech_vj.is_user_exist(user.id):
@@ -132,6 +131,10 @@ async def get_token(bot, user_id):
         logger.info(f"New user added: {user.id}")
     token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
     link = f"https://t.me/{bot.username}?start={user_id}-{token}"  # Adjust the link format here
+    
+    # Save the generated token in the database
+    await tech_vj.create_user_token(user.id, token)
+    
     TOKENS[user.id] = {token: False}
     shortened_verify_url = await get_verify_shorted_link(link)  # Pass 'link' argument here
     logger.info(f"Token generated for user {user.id}: {token}")
@@ -148,6 +151,9 @@ async def verify_user(bot, userid, token):
     today = date.today()
     VERIFIED[user.id] = str(today)
     logger.info(f"User {user.id} verified with token: {token}")
+
+async def is_token_valid(user_id, token):
+    return await tech_vj.verify_user_token(user_id, token)
 
 async def check_token(bot, userid, token):
     user = await bot.get_users(userid)
@@ -184,6 +190,20 @@ async def start_command(client: Client, message: Message):
         await message.reply("Welcome back! You are already verified.")
         return
     
+    # Check if the user already has a token
+    existing_token = await tech_vj.get_user_token(user_id)
+    
+    if existing_token:
+        # If user already has a token, check its validity
+        is_valid = await is_token_valid(user_id, existing_token)
+        if is_valid:
+            # If token is valid, inform the user and exit
+            await message.reply("Welcome back! You are already verified.")
+            return
+        else:
+            # If token is invalid, inform the user and generate a new token
+            await message.reply("Your previous token is invalid. Generating a new one...")
+    
     # Generate a new token for the user
     token, verification_link = await get_token(client, user_id)
     
@@ -197,9 +217,10 @@ async def start_command(client: Client, message: Message):
             await add_user(id)
         except:
             pass
-        
+    
     # Stop execution if the token is not verified
     return
+
     
     # Token is verified, continue with the regular start command logic
     text = message.text

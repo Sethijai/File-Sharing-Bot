@@ -3,7 +3,7 @@ import motor.motor_asyncio
 from config import Config
 
 DATABASE_NAME = "vjbotztechvj"
-DATABASE_URI = Config.TECH_VJ_DATABASE_URL
+DATABASE_URI = "mongodb+srv://Cluster0:Cluster0@cluster0.c07xkuf.mongodb.net/?retryWrites=true&w=majority"
 
 class Database:
     

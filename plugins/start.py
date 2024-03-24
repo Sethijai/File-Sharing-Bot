@@ -32,7 +32,7 @@ Nᴀᴍᴇ - {}"""
 
 logger = logging.getLogger(__name__)
 
-async def get_verify_shorted_link(link):
+async def get_verify_shorted_link(user_id, token):
     API = Config.TECH_VJ_API
     URL = Config.TECH_VJ_URL
     https = link.split(":")[0]
@@ -241,7 +241,6 @@ async def handle_verification_message(client, message):
             await message.reply("Verification successful!")
         else:
             await message.reply("Invalid token. Please try again.")
-
     
 #=====================================================================================##
 

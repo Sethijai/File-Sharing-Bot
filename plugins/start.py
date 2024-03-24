@@ -332,11 +332,10 @@ async def start_command(client: Client, message: Message):
 @Bot.on_message(filters.private)
 async def handle_verification_message(client, message):
     user_id = message.from_user.id
-    if user_id in TOKENS.values():
-        token = message.text.strip()
-        if token in TOKENS.values():
-            verified_user_id = [k for k, v in TOKENS.items() if v == token][0]
-            await verify_user(verified_user_id, token)
+    text = message.text.strip()
+    if user_id in TOKENS and text in TOKENS[user_id].values():
+        token = text
+        if await tech_vj.verify_user_token(user_id, token):
             await message.reply("Verification successful!")
         else:
             await message.reply("Invalid token. Please try again.")

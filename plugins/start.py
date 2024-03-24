@@ -48,7 +48,11 @@ class Database:
     async def is_user_exist(self, user_id):
         user = await self.users.find_one({"_id": user_id})
         return bool(user)
-
+    
+    async def add_user(self, user_id, name):
+        user = self.new_user(user_id, name)
+        await self.users.insert_one(user)
+        
     async def create_user_token(self, user_id):
         token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
         await self.users.update_one({"_id": user_id}, {"$set": {"token": token}}, upsert=True)

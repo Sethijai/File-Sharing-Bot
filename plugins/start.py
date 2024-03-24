@@ -25,7 +25,6 @@ from database.database import add_user, del_user, full_userbase, present_user
 
 TOKENS = {}
 VERIFIED = {}
-#link = str(link)#
 
 LOG_TEXT_P = """#NewUser
 ID - <code>{}</code>
@@ -33,9 +32,10 @@ Nᴀᴍᴇ - {}"""
 
 logger = logging.getLogger(__name__)
 
-async def get_verify_shorted_link(link):
+async def get_verify_shorted_link(user_id, token):
     API = "api.shareus.io"
     URL = "PUIAQBIFrydvLhIzAOeGV8yZppu2"
+    link = f"{Config.BASE_URL}/verify-{user_id}-{token}"
     link = str(link)
     https = link.split(":")[0]
     if "http" == https:
@@ -96,16 +96,15 @@ async def check_token(bot, userid, token):
     else:
         return False
 
-async def get_token(bot, userid, link):
+async def get_token(bot, userid):
     user = await bot.get_users(userid)
     if not await tech_vj.is_user_exist(user.id):
         await tech_vj.add_user(user.id, user.first_name)
         await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
     token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
     TOKENS[user.id] = {token: False}
-    link = f"{link}verify-{user.id}-{token}"
-    shortened_verify_url = await get_verify_shorted_link(link)
-    return str(shortened_verify_url)
+    shortened_verify_url = await get_verify_shorted_link(user.id, token)
+    return token, str(shortened_verify_url)
 
 async def verify_user(bot, userid, token):
     user = await bot.get_users(userid)
@@ -138,14 +137,19 @@ async def check_verification(bot, userid):
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
-    shortened_url = await get_verify_shorted_link(user_id)
-    await message.reply(f"Click on the link to verify: {shortened_url}")
-    id = message.from_user.id
-    if not await present_user(id):
+    if not await present_user(user_id):
         try:
-            await add_user(id)
+            await add_user(user_id)
         except:
             pass
+    
+    token_verified = await check_verification(client, user_id)
+    if not token_verified:
+        token, shortened_url = await get_token(client, user_id)
+        await message.reply(f"Click on the link to verify: {shortened_url}")
+        return
+    
+    # If token is verified, continue with the regular start command logic
     text = message.text
     if len(text)>7:
         try:
@@ -235,13 +239,10 @@ async def handle_verification_message(client, message):
         token = message.text.strip()
         if token in TOKENS.values():
             verified_user_id = [k for k, v in TOKENS.items() if v == token][0]
-            VERIFIED[verified_user_id] = True
+            await verify_user(verified_user_id, token)
             await message.reply("Verification successful!")
         else:
             await message.reply("Invalid token. Please try again.")
-    else:
-        await message.reply("Please start with /start command to receive the verification link.")
-
 # Other commands and functions...
 
     

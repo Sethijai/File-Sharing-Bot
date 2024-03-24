@@ -50,7 +50,7 @@ class Database:
         return bool(user)
     
     async def add_user(self, user_id, name):
-        user = {"_id": user_id, "name": name}  # Example document
+        user = {"_id": user_id, "name": name}
         await self.users.insert_one(user)
         
     async def create_user_token(self, user_id):
@@ -70,6 +70,41 @@ class Database:
             await self.users.update_one({"_id": user_id}, {"$unset": {"token": ""}})
             return True
         return False
+
+tech_vj = Database(DATABASE_URI, DATABASE_NAME)
+
+"""
+class Database:
+    def __init__(self, uri, database_name):
+        self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
+        self.db = self._client[database_name]
+        self.users = self.db.users
+
+    async def is_user_exist(self, user_id):
+        user = await self.users.find_one({"_id": user_id})
+        return bool(user)
+    
+    async def add_user(self, user_id, name):
+        user = {"_id": user_id, "name": name}  # Example document
+        await self.users.insert_one(user)
+        
+    async def create_user_token(self, user_id):
+        token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
+        await self.users.update_one({"_id": user_id}, {"$set": {"token": token}}, upsert=True)
+        return token
+    
+    async def get_user_token(self, user_id):
+        user = await self.users.find_one({"_id": user_id})
+        if user:
+            return user.get("token")
+        return None
+    
+    async def verify_user_token(self, user_id, token):
+        user = await self.users.find_one({"_id": user_id, "token": token})
+        if user:
+            await self.users.update_one({"_id": user_id}, {"$unset": {"token": ""}})
+            return True
+        return False """
 
 
 async def get_verify_shorted_link(user_id, token, link):
@@ -140,8 +175,8 @@ async def get_token(bot, userid):
     if not await tech_vj.is_user_exist(user.id):
         await tech_vj.add_user(user.id, user.first_name)
         await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
-    token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
-    link = f"https://t.me/{bot.username}?start={token}"
+    token = await tech_vj.create_user_token(user.id)
+    link = f"https://t.me/{bot.username}?start={user.id}-{token}"
     TOKENS[user.id] = {token: False}
     shortened_verify_url = await get_verify_shorted_link(user.id, token, link)  # Pass 'link' argument here
     return token, str(shortened_verify_url)

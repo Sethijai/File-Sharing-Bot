@@ -32,7 +32,7 @@ Nᴀᴍᴇ - {}"""
 
 logger = logging.getLogger(__name__)
 
-async def get_verify_shorted_link(user_id, token):
+async def get_verify_shorted_link(user_id, token, link):
     API = Config.TECH_VJ_API
     URL = Config.TECH_VJ_URL
     https = link.split(":")[0]
@@ -77,6 +77,7 @@ async def get_verify_shorted_link(user_id, token):
         except Exception as e:
             logger.error(e)
             return f'{URL}/api?api={API}&link={link}'
+
 
 async def check_token(bot, userid, token):
     user = await bot.get_users(userid)

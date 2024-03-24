@@ -179,35 +179,6 @@ async def start_command(client: Client, message: Message):
     # Check if the user's token is already verified
     token_verified = await check_verification(client, user_id)
     
-    if token_verified:
-        # If token is verified, inform the user and exit
-        await message.reply("Welcome back! You are already verified.")
-        return
-    
-    # If token is not verified, prompt the user to verify their account
-    
-    # Generate a new token for the user
-    token, verification_link = await get_token(client, user_id)
-    
-    # Send the verification link to the user
-    await message.reply(f"Please verify your account by clicking on the link: {verification_link}")
-            # Send the verification link to the user
-        await message.reply(f"Please verify your account by clicking on the link: {verification_link}")
-
-        # Add user to the database if not already present
-        id = message.from_user.id
-        if not await present_user(id):
-            try:
-                await add_user(id)
-            except:
-                pass
-        
-        # Stop execution if the token is not verified
-        return
-
-    # Check if the user's token is already verified
-    token_verified = await check_verification(client, user_id)
-    
     if not token_verified:
         # If token is not verified, inform the user and exit
         await message.reply("You need to verify your account first.")
@@ -294,6 +265,7 @@ async def start_command(client: Client, message: Message):
             quote=True
         )
         return
+
 
 #=====================================================================================##
 

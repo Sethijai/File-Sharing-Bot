@@ -133,7 +133,7 @@ async def check_verification(bot, userid):
             return True
     else:
         return False
-
+        
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
@@ -145,10 +145,32 @@ async def start_command(client: Client, message: Message):
     
     token_verified = await check_verification(client, user_id)
     if not token_verified:
-        token, shortened_url = await get_token(client, user_id)
-        await message.reply(f"Click on the link to verify: {shortened_url}")
-        return
-    
+        text = message.text
+        if len(text) > 7:
+            try:
+                base64_string = text.split(" ", 1)[1]
+                token = await decode(base64_string)
+                user_id_from_token, token = token.split("-")
+                user_id_from_token = int(user_id_from_token)
+            except Exception as e:
+                await message.reply("Invalid verification link.")
+                return
+            if user_id != user_id_from_token:
+                await message.reply("Invalid verification link.")
+                return
+            
+            # Verify the token
+            if await check_token(client, user_id, token):
+                await verify_user(client, user_id, token)
+                await message.reply("Verification successful!")
+            else:
+                await message.reply("Invalid token. Please try again.")
+        else:
+            token, shortened_url = await get_token(client, user_id)
+            await message.reply(f"Click on the link to verify: {shortened_url}")
+            return
+    else:
+
     # If token is verified, continue with the regular start command logic
     text = message.text
     if len(text)>7:

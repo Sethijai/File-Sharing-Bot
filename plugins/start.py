@@ -241,10 +241,6 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
 
 
 
-
-
-
-
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
@@ -425,11 +421,6 @@ Deleted Accounts: <code>{deleted}</code>
 Unsuccessful: <code>{unsuccessful}</code></b>"""
         
         return await pls_wait.edit(status)
-
-    else:
-        msg = await message.reply(REPLY_ERROR)
-        await asyncio.sleep(8)
-        await msg.delete()
 
     else:
         msg = await message.reply(REPLY_ERROR)

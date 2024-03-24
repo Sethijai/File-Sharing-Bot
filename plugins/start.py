@@ -54,7 +54,8 @@ class Database:
         await self.users.insert_one(user)
 
     async def create_user_token(self, user_id, token):
-    await self.users.update_one({"_id": user_id}, {"$set": {"token": token}}, upsert=True)
+        await self.users.update_one({"_id": user_id}, {"$set": {"token": token}}, upsert=True)
+
     
     async def get_user_token(self, user_id):
         user = await self.users.find_one({"_id": user_id})

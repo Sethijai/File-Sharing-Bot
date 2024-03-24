@@ -7,3 +7,22 @@ pymongo
 dnspython
 # --- For-Web-Response ------- #
 aiohttp
+#----------------#
+numpy
+yt-dlp
+Pillow
+aiohttp
+hachoir
+olefile
+requests
+motor[srv]
+beautifulsoup4
+datetime 
+pytz 
+requests 
+bs4 
+Flask==1.1.2
+gunicorn==20.1.0
+Jinja2==3.0.3
+werkzeug==2.0.2
+itsdangerous==2.0.1

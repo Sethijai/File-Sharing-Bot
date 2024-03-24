@@ -23,7 +23,18 @@ from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
-TOKENS = {}
+TOKENS = [
+    "Kt3gWHm",
+    "sGh9VjT",
+    "d2RfLzP",
+    "bY7nQxE",
+    "Fc1uVvA",
+    "pR8oZaC",
+    "mX5iQbD",
+    "eN6sHpU",
+    "wJ4lSoK",
+    "hD9tPyF"
+]
 VERIFIED = {}
 
 LOG_TEXT_P = """#NewUser
@@ -128,7 +139,7 @@ async def get_token(bot, user_id):
         await tech_vj.add_user(user.id, user.first_name)
         await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
         logger.info(f"New user added: {user.id}")
-    token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
+    token = random.choice(TOKENS)
     link = f"https://t.me/{bot.username}?start={user_id}-{token}"  # Adjust the link format here
     
     # Save the generated token in the database
@@ -176,6 +187,7 @@ async def check_verification(bot, userid):
             return True
     else:
         return False
+
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
@@ -304,7 +316,6 @@ async def start_command(client: Client, message: Message):
             quote=True
         )
         return
-
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""

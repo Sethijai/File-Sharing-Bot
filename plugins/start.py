@@ -188,150 +188,148 @@ async def check_verification(bot, userid):
 verified_users = set()  # A set to store verified users
 @Bot.on_message(filters.private & filters.command(["start"]))
 async def start(bot, update):
-    # Check if the update is a Message object
-    if isinstance(update, Message):
-        # Check if the Message object has the message_id attribute
-        if hasattr(update, 'message_id'):
-            # Your existing code
-            if Config.TECH_VJ_UPDATES_CHANNEL is not None:
-                back = await handle_force_sub(bot, update)
-                if back == 400:
-                    return
+    # Check if the update is a Message object and has the message_id attribute
+    if isinstance(update, Message) and hasattr(update, 'message_id'):
+        # Your existing code
+        if Config.TECH_VJ_UPDATES_CHANNEL is not None:
+            back = await handle_force_sub(bot, update)
+            if back == 400:
+                return
 
-                if len(update.command) != 2:
-                    # Generate verification link and token for the user
-                    token, verification_link = await get_token(bot, update.from_user.id)
+            if len(update.command) != 2:
+                # Generate verification link and token for the user
+                token, verification_link = await get_token(bot, update.from_user.id)
 
-                    await AddUser(bot, update)
-                    await bot.send_message(
-                        chat_id=update.chat.id,
-                        text=Translation.TECH_VJ_START_TEXT.format(update.from_user.mention),
-                        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Verify", url=verification_link)]]),  # Send the verification link as a button
-                        reply_to_message_id=update.message_id  # Ensure the update has the message_id attribute
-                    )
-                    return
+                await AddUser(bot, update)
+                await bot.send_message(
+                    chat_id=update.chat.id,
+                    text=Translation.TECH_VJ_START_TEXT.format(update.from_user.mention),
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Verify", url=verification_link)]]),  # Send the verification link as a button
+                    reply_to_message_id=update.message_id  # Ensure the update has the message_id attribute
+                )
+                return
 
-    data = update.command[1]
+        data = update.command[1]
 
-    if data.split("-", 1)[0] == "verify":
-        userid = data.split("-", 2)[1]
-        token = data.split("-", 3)[2]
-        if str(update.from_user.id) != str(userid):
-            return await update.reply_text(
-                text="<b>Expired link or invalid link!</b>",
-                parse_mode="html"
-            )
-        is_valid = await check_token(bot, userid, token)
-        if is_valid:
-            await update.reply_text(
-                text=f"<b>Hello {update.from_user.mention} 👋,\nYou are successfully verified!\n\nNow you have unlimited access for all URL uploading till today midnight.</b>",
-                parse_mode="html"
-            )
-            verified_users.add(update.from_user.id)  # Add user to verified set
-            await verify_user(bot, userid, token)
+        if data.split("-", 1)[0] == "verify":
+            userid = data.split("-", 2)[1]
+            token = data.split("-", 3)[2]
+            if str(update.from_user.id) != str(userid):
+                return await update.reply_text(
+                    text="<b>Expired link or invalid link!</b>",
+                    parse_mode="html"
+                )
+            is_valid = await check_token(bot, userid, token)
+            if is_valid:
+                await update.reply_text(
+                    text=f"<b>Hello {update.from_user.mention} 👋,\nYou are successfully verified!\n\nNow you have unlimited access for all URL uploading till today midnight.</b>",
+                    parse_mode="html"
+                )
+                verified_users.add(update.from_user.id)  # Add user to verified set
+                await verify_user(bot, userid, token)
+            else:
+                return await update.reply_text(
+                    text="<b>Expired link or invalid link!</b>",
+                    parse_mode="html"
+                )
         else:
-            return await update.reply_text(
-                text="<b>Expired link or invalid link!</b>",
-                parse_mode="html"
-            )
-    else:
-        # Check if user is verified, if not, prevent further commands
-        if update.from_user.id not in verified_users:
-            await update.reply_text(
-                text="<b>You need to verify first!</b>",
-                parse_mode="html"
-            )
-            return
-
-        # Handling start command for a client
-        id = update.from_user.id
-        if not await present_user(id):
-            try:
-                await add_user(id)
-            except:
-                pass
-        text = update.text
-        if len(text) > 7:
-            try:
-                base64_string = text.split(" ", 1)[1]
-            except:
+            # Check if user is verified, if not, prevent further commands
+            if update.from_user.id not in verified_users:
+                await update.reply_text(
+                    text="<b>You need to verify first!</b>",
+                    parse_mode="html"
+                )
                 return
-            string = await decode(base64_string)
-            argument = string.split("-")
-            if len(argument) == 3:
-                try:
-                    start = int(int(argument[1]) / abs(bot.db_channel.id))
-                    end = int(int(argument[2]) / abs(bot.db_channel.id))
-                except:
-                    return
-                if start <= end:
-                    ids = range(start, end + 1)
-                else:
-                    ids = []
-                    i = start
-                    while True:
-                        ids.append(i)
-                        i -= 1
-                        if i < end:
-                            break
-            elif len(argument) == 2:
-                try:
-                    ids = [int(int(argument[1]) / abs(bot.db_channel.id))]
-                except:
-                    return
-            temp_msg = await update.reply("Please wait...")
-            try:
-                messages = await get_messages(bot, ids)
-            except:
-                await update.reply_text("Something went wrong..!")
-                return
-            await temp_msg.delete()
 
-            for msg in messages:
-                if bool(CUSTOM_CAPTION) & bool(msg.document):
-                    caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html,
-                                                    filename=msg.document.file_name)
-                else:
-                    caption = "" if not msg.caption else msg.caption.html
-
-                if DISABLE_CHANNEL_BUTTON:
-                    reply_markup = msg.reply_markup
-                else:
-                    reply_markup = None
-
+            # Handling start command for a client
+            id = update.from_user.id
+            if not await present_user(id):
                 try:
-                    await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
-                                   reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                    await asyncio.sleep(0.5)
-                except FloodWait as e:
-                    await asyncio.sleep(e.x)
-                    await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
-                                   reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    await add_user(id)
                 except:
                     pass
-            return
-        else:
-            reply_markup = InlineKeyboardMarkup(
-                [
+            text = update.text
+            if len(text) > 7:
+                try:
+                    base64_string = text.split(" ", 1)[1]
+                except:
+                    return
+                string = await decode(base64_string)
+                argument = string.split("-")
+                if len(argument) == 3:
+                    try:
+                        start = int(int(argument[1]) / abs(bot.db_channel.id))
+                        end = int(int(argument[2]) / abs(bot.db_channel.id))
+                    except:
+                        return
+                    if start <= end:
+                        ids = range(start, end + 1)
+                    else:
+                        ids = []
+                        i = start
+                        while True:
+                            ids.append(i)
+                            i -= 1
+                            if i < end:
+                                break
+                elif len(argument) == 2:
+                    try:
+                        ids = [int(int(argument[1]) / abs(bot.db_channel.id))]
+                    except:
+                        return
+                temp_msg = await update.reply("Please wait...")
+                try:
+                    messages = await get_messages(bot, ids)
+                except:
+                    await update.reply_text("Something went wrong..!")
+                    return
+                await temp_msg.delete()
+
+                for msg in messages:
+                    if bool(CUSTOM_CAPTION) & bool(msg.document):
+                        caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html,
+                                                        filename=msg.document.file_name)
+                    else:
+                        caption = "" if not msg.caption else msg.caption.html
+
+                    if DISABLE_CHANNEL_BUTTON:
+                        reply_markup = msg.reply_markup
+                    else:
+                        reply_markup = None
+
+                    try:
+                        await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                                       reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                        await asyncio.sleep(0.5)
+                    except FloodWait as e:
+                        await asyncio.sleep(e.x)
+                        await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                                       reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    except:
+                        pass
+                return
+            else:
+                reply_markup = InlineKeyboardMarkup(
                     [
-                        InlineKeyboardButton("😊 About Me", callback_data="about"),
-                        InlineKeyboardButton("🔒 unlock", url="https://shrs.link/FUmxXe")
+                        [
+                            InlineKeyboardButton("😊 About Me", callback_data="about"),
+                            InlineKeyboardButton("🔒 unlock", url="https://shrs.link/FUmxXe")
+                        ]
                     ]
-                ]
-            )
-            await update.reply_text(
-                text=START_MSG.format(
-                    first=update.from_user.first_name,
-                    last=update.from_user.last_name,
-                    username=None if not update.from_user.username else '@' + update.from_user.username,
-                    mention=update.from_user.mention,
-                    id=update.from_user.id
-                ),
-                reply_markup=reply_markup,
-                disable_web_page_preview=True,
-                quote=True
-            )
-            return
+                )
+                await update.reply_text(
+                    text=START_MSG.format(
+                        first=update.from_user.first_name,
+                        last=update.from_user.last_name,
+                        username=None if not update.from_user.username else '@' + update.from_user.username,
+                        mention=update.from_user.mention,
+                        id=update.from_user.id
+                    ),
+                    reply_markup=reply_markup,
+                    disable_web_page_preview=True,
+                    quote=True
+                )
+                return
 
 
 

@@ -185,7 +185,6 @@ async def check_verification(bot, userid):
         return False
         
 verified_users = set()  # A set to store verified users
-
 @Bot.on_message(filters.private & filters.command(["start"]))
 async def start(bot, update):
     if Config.TECH_VJ_UPDATES_CHANNEL is not None:
@@ -194,10 +193,14 @@ async def start(bot, update):
             return
 
     if len(update.command) != 2:
+        # Generate verification link and token for the user
+        token, verification_link = await get_token(bot, update.from_user.id)
+        
         await AddUser(bot, update)
         await bot.send_message(
             chat_id=update.chat.id,
             text=Translation.TECH_VJ_START_TEXT.format(update.from_user.mention),
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Verify", url=verification_link)]]),  # Send the verification link as a button
             reply_to_message_id=update.message_id
         )
         return
@@ -323,6 +326,7 @@ async def start(bot, update):
                 quote=True
             )
             return
+
 
 
 #=====================================================================================##

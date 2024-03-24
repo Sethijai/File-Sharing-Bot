@@ -217,10 +217,12 @@ async def start_command(client: Client, message: Message):
         except:
             pass
     
-    # Stop execution if the token is not verified
-    return
+    # Check if the token is verified
+    token_verified = await check_verification(client, user_id)
+    if not token_verified:
+        # If token is not verified, stop execution
+        return
 
-    
     # Token is verified, continue with the regular start command logic
     text = message.text
     if len(text) > 7:
@@ -278,6 +280,9 @@ async def start_command(client: Client, message: Message):
                 await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
             except:
                 pass
+
+        # Save verified user information into the database
+        await tech_vj.verify_user_token(id, existing_token)
         return
     else:
         reply_markup = InlineKeyboardMarkup(
@@ -300,6 +305,9 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview=True,
             quote=True
         )
+
+        # Log the verified user information
+        logger.info(f"Verified user: ID - {message.from_user.id}, Name - {message.from_user.first_name}")
         return
 
 

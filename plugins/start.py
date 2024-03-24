@@ -34,8 +34,8 @@ Nᴀᴍᴇ - {}"""
 logger = logging.getLogger(__name__)
 
 async def get_verify_shorted_link(link):
-    API = Config.TECH_VJ_API
-    URL = Config.TECH_VJ_URL
+    API = "api.shareus.io"
+    URL = "PUIAQBIFrydvLhIzAOeGV8yZppu2"
     link = str(link)
     https = link.split(":")[0]
     if "http" == https:

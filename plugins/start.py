@@ -136,7 +136,7 @@ async def check_verification(bot, userid):
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
-    shortened_url = await get_verify_shortened_link(user_id)
+    shortened_url = await get_verify_shorted_link(user_id)
     await message.reply(f"Click on the link to verify: {shortened_url}")
     id = message.from_user.id
     if not await present_user(id):

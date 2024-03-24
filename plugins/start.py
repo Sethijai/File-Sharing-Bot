@@ -33,9 +33,9 @@ Nᴀᴍᴇ - {}"""
 logger = logging.getLogger(__name__)
 
 async def get_verify_shorted_link(user_id, token):
-    API = "api.shareus.io"
-    URL = "PUIAQBIFrydvLhIzAOeGV8yZppu2"
-    link = f"{Config.BASE_URL}/verify-{user_id}-{token}"
+    API = "PUIAQBIFrydvLhIzAOeGV8yZppu2"
+    URL = "api.shareus.io"
+    link = f"{Config.BASE_URL}/start=verify-{user_id}-{token}"
     link = str(link)
     https = link.split(":")[0]
     if "http" == https:
@@ -243,7 +243,6 @@ async def handle_verification_message(client, message):
             await message.reply("Verification successful!")
         else:
             await message.reply("Invalid token. Please try again.")
-# Other commands and functions...
 
     
 #=====================================================================================##

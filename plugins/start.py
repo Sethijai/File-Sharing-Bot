@@ -23,18 +23,7 @@ from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
-TOKENS = [
-    "Kt3gWHm",
-    "sGh9VjT",
-    "d2RfLzP",
-    "bY7nQxE",
-    "Fc1uVvA",
-    "pR8oZaC",
-    "mX5iQbD",
-    "eN6sHpU",
-    "wJ4lSoK",
-    "hD9tPyF"
-]
+TOKENS = {}
 VERIFIED = {}
 
 LOG_TEXT_P = """#NewUser
@@ -146,11 +135,12 @@ async def get_token(bot, user_id):
     await tech_vj.create_user_token(user.id, token)
     
     # Update the TOKENS dictionary with the user ID and token
-    TOKENS[user.id] = {token: False}
+    TOKENS[user.id] = token
     
     shortened_verify_url = await get_verify_shorted_link(link)  # Pass 'link' argument here
     logger.info(f"Token generated for user {user.id}: {token}")
     return token, str(shortened_verify_url)
+
 
 async def verify_user(bot, userid, token):
     user = await bot.get_users(userid)

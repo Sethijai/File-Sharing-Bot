@@ -17,7 +17,7 @@ class Config(object):
     # Bot Information 
     TECH_VJ_BOT_TOKEN = os.environ.get("TECH_VJ_BOT_TOKEN", "7062468773:AAHQTrhqussRoplB365l6XwdZKaYO_WSAm0")
     TECH_VJ_BOT_USERNAME = os.environ.get("TECH_VJ_BOT_USERNAME", "Terabox_sis_bot") # Bot username without @.
-    
+    BASE_URL = os.environ.get("BASE_URL", "Terabox_sis_bot")
     # The Telegram API things
     TECH_VJ_API_ID = int(os.environ.get("TECH_VJ_API_ID", "22505271"))
     TECH_VJ_API_HASH = os.environ.get("TECH_VJ_API_HASH", "c89a94fcfda4bc06524d0903977fc81e")

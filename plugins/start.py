@@ -50,7 +50,7 @@ class Database:
         return bool(user)
     
     async def add_user(self, user_id, name):
-        user = self.new_user(user_id, name)
+        user = {"_id": user_id, "name": name}  # Example document
         await self.users.insert_one(user)
         
     async def create_user_token(self, user_id):
@@ -70,12 +70,7 @@ class Database:
             await self.users.update_one({"_id": user_id}, {"$unset": {"token": ""}})
             return True
         return False
-    
-    def new_user(self, user_id, name):
-        # Implement the new_user method according to your requirements.
-        pass
 
-tech_vj = Database(DATABASE_URI, DATABASE_NAME)
 
 async def get_verify_shorted_link(user_id, token, link):
     API = Config.TECH_VJ_API

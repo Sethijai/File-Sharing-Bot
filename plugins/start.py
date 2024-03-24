@@ -1,5 +1,3 @@
-
-
 import os
 import asyncio
 from pyrogram import Client, filters, __version__
@@ -12,21 +10,78 @@ from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL
 from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
 
+from telegram.ext import Updater, CommandHandler
+from pymongo import MongoClient
+from urllib.parse import quote_plus
+import random
+import string
+import logging
 
+# Set up logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+# Replace this with your MongoDB connection URI
+DATABASE_URI = "mongodb+srv://Cluster0:Cluster0@cluster0.c07xkuf.mongodb.net/ultroidxTeam?retryWrites=true&w=majority"
 
+# Initialize MongoDB client and database
+client = MongoClient(DATABASE_URI)
+db = client.get_default_database()
+collection = db['tokens']
+
+# Function to generate a random token
+def generate_token():
+    # Generate a random string of characters for the token
+    token = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+    return token
+
+# Function to save token to MongoDB
+def save_token_to_db(user_id, token):
+    # Insert token into the database
+    token_doc = {'user_id': user_id, 'token': token}
+    collection.insert_one(token_doc)
+
+# Function to handle /start command
+def start(update, context):
+    user_id = update.message.from_user.id
+    logger.info(f"User {user_id} requested /start")
+
+    # Check if the user already has a token
+    existing_token = collection.find_one({'user_id': user_id})
+
+    if existing_token:
+        token = existing_token['token']
+        logger.info(f"User {user_id} already has token: {token}")
+        update.message.reply_text(f'You already have a token: {token}')
+    else:
+        # Generate token
+        token = generate_token()
+        logger.info(f"Generated new token for user {user_id}: {token}")
+
+        # Save token to database
+        save_token_to_db(user_id, token)
+
+        # Provide token through link
+        bot_username = context.bot.username
+        token_encoded = quote_plus(token)
+        link = f"https://t.me/{bot_username}?start=token_{token_encoded}"
+        update.message.reply_text(f'Use this link to verify: {link}')
+        logger.info(f"Sent verification link to user {user_id}")
+
+# Function to verify token
+def verify_token(user_id, token):
+    token_doc = collection.find_one({'user_id': user_id, 'token': token})
+    return token_doc is not None
+
+# Main code
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
-    if not await present_user(id):
+    token = message.text.split(" ", 1)[1]
+    if verify_token(id, token):
+        # Run your main code here if the token is valid and verified
         try:
-            await add_user(id)
-        except:
-            pass
-    text = message.text
-    if len(text)>7:
-        try:
-            base64_string = text.split(" ", 1)[1]
+            base64_string = token.split(" ", 1)[1]
         except:
             return
         string = await decode(base64_string)
@@ -80,8 +135,8 @@ async def start_command(client: Client, message: Message):
                 await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
             except:
                 pass
-        return
     else:
+        # Run token system code here if the token is not valid or not verified
         reply_markup = InlineKeyboardMarkup(
             [
                 [
@@ -102,9 +157,7 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview = True,
             quote = True
         )
-        return
 
-    
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
@@ -200,4 +253,3 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
         await msg.delete()
-        

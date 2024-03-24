@@ -32,11 +32,11 @@ def generate_token():
     return token
 
 # Function to save token to MongoDB
-def save_token_to_db(user_id, token):
+async def save_token_to_db(user_id, token):
     # Encode the token before saving
-    encoded_token = encode(token)
+    encoded_token = await encode(token)
     
-    # Insert encoded token into the database
+    # Insert the encoded token into the database
     token_doc = {'user_id': user_id, 'token': encoded_token}
     collection.insert_one(token_doc)
 

@@ -125,137 +125,97 @@ async def check_verification(bot, userid):
     else:
         return False
 
+
+
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
-    user_id = message.from_user.id
-    if not await present_user(user_id):
+    id = message.from_user.id
+    if not await present_user(id):
         try:
-            await add_user(user_id)
+            await add_user(id)
         except:
             pass
-    
-    token_verified = await check_verification(client, user_id)
-    if not token_verified:
-        text = message.text
-        if len(text) > 7:
+    text = message.text
+    if len(text)>7:
+        try:
+            base64_string = text.split(" ", 1)[1]
+        except:
+            return
+        string = await decode(base64_string)
+        argument = string.split("-")
+        if len(argument) == 3:
             try:
-                base64_string = text.split(" ", 1)[1]
-                token = await decode(base64_string)
-                user_id_from_token, token = token.split("-")
-                user_id_from_token = int(user_id_from_token)
-            except Exception as e:
-                await message.reply("Invalid verification link.")
+                start = int(int(argument[1]) / abs(client.db_channel.id))
+                end = int(int(argument[2]) / abs(client.db_channel.id))
+            except:
                 return
-            if user_id != user_id_from_token:
-                await message.reply("Invalid verification link.")
-                return
-            
-            # Verify the token
-            if await check_token(client, user_id, token):
-                await verify_user(client, user_id, token)
-                await message.reply("Verification successful!")
+            if start <= end:
+                ids = range(start,end+1)
             else:
-                await message.reply("Invalid token. Please try again.")
-        else:
-            token, shortened_url = await get_token(client, user_id)
-            await message.reply(f"Click on the link to verify: {shortened_url}")
+                ids = []
+                i = start
+                while True:
+                    ids.append(i)
+                    i -= 1
+                    if i < end:
+                        break
+        elif len(argument) == 2:
+            try:
+                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
+            except:
+                return
+        temp_msg = await message.reply("Please wait...")
+        try:
+            messages = await get_messages(client, ids)
+        except:
+            await message.reply_text("Something went wrong..!")
             return
+        await temp_msg.delete()
+
+        for msg in messages:
+
+            if bool(CUSTOM_CAPTION) & bool(msg.document):
+                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
+            else:
+                caption = "" if not msg.caption else msg.caption.html
+
+            if DISABLE_CHANNEL_BUTTON:
+                reply_markup = msg.reply_markup
+            else:
+                reply_markup = None
+
+            try:
+                await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+                await asyncio.sleep(0.5)
+            except FloodWait as e:
+                await asyncio.sleep(e.x)
+                await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+            except:
+                pass
+        return
     else:
-        # If token is verified, continue with the regular start command logic
-        # If token is verified, continue with the regular start command logic
-        text = message.text
-        if len(text) > 7:
-            try:
-                base64_string = text.split(" ", 1)[1]
-            except:
-                return
-            string = await decode(base64_string)
-            argument = string.split("-")
-            if len(argument) == 3:
-                try:
-                    start = int(int(argument[1]) / abs(client.db_channel.id))
-                    end = int(int(argument[2]) / abs(client.db_channel.id))
-                except:
-                    return
-                if start <= end:
-                    ids = range(start,end+1)
-                else:
-                    ids = []
-                    i = start
-                    while True:
-                        ids.append(i)
-                        i -= 1
-                        if i < end:
-                            break
-            elif len(argument) == 2:
-                try:
-                    ids = [int(int(argument[1]) / abs(client.db_channel.id))]
-                except:
-                    return
-            temp_msg = await message.reply("Please wait...")
-            try:
-                messages = await get_messages(client, ids)
-            except:
-                await message.reply_text("Something went wrong..!")
-                return
-            await temp_msg.delete()
-
-            for msg in messages:
-
-                if bool(CUSTOM_CAPTION) & bool(msg.document):
-                    caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
-                else:
-                    caption = "" if not msg.caption else msg.caption.html
-
-                if DISABLE_CHANNEL_BUTTON:
-                    reply_markup = msg.reply_markup
-                else:
-                    reply_markup = None
-
-                try:
-                    await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
-                    await asyncio.sleep(0.5)
-                except FloodWait as e:
-                    await asyncio.sleep(e.x)
-                    await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
-                except:
-                    pass
-            return
-        else:
-            reply_markup = InlineKeyboardMarkup(
+        reply_markup = InlineKeyboardMarkup(
+            [
                 [
-                    [
-                        InlineKeyboardButton("😊 About Me", callback_data = "about"),
-                        InlineKeyboardButton("❤️‍🔥 subscribe", url = "http://youtube.com/@ultroidofficial")
-                    ]
+                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
+                    InlineKeyboardButton("🔒 unlock", url="https://shrs.link/FUmxXe")
                 ]
-            )
-            await message.reply_text(
-                text = START_MSG.format(
-                    first = message.from_user.first_name,
-                    last = message.from_user.last_name,
-                    username = None if not message.from_user.username else '@' + message.from_user.username,
-                    mention = message.from_user.mention,
-                    id = message.from_user.id
-                ),
-                reply_markup = reply_markup,
-                disable_web_page_preview = True,
-                quote = True
-            )
-            return
+            ]
+        )
+        await message.reply_text(
+            text = START_MSG.format(
+                first = message.from_user.first_name,
+                last = message.from_user.last_name,
+                username = None if not message.from_user.username else '@' + message.from_user.username,
+                mention = message.from_user.mention,
+                id = message.from_user.id
+            ),
+            reply_markup = reply_markup,
+            disable_web_page_preview = True,
+            quote = True
+        )
+        return
 
-    
-# Token verification
-@Bot.on_message(filters.private)
-async def handle_verification_message(client, message):
-    user_id = message.from_user.id
-    text = message.text.strip()
-    if user_id in TOKENS and text in TOKENS[user_id].values():
-        token = text
-        if await tech_vj.verify_user_token(user_id, token):
-            await message.reply("Verification successful!")
-        else:
-            await message.reply("Invalid token. Please try again.")
     
 #=====================================================================================##
 
@@ -265,8 +225,9 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 
 #=====================================================================================##
 
-
-@Bot.on_message(filters.private & filters.command('start') & filters.user(ADMINS))
+    
+    
+@Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
     buttons = [
         [
@@ -300,16 +261,16 @@ async def not_joined(client: Client, message: Message):
         disable_web_page_preview = True
     )
 
-@Bot.on_message(filters.private & filters.command('users') & filters.user(ADMINS))
+@Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
     msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
-    users = await tech_vj.full_userbase()
+    users = await full_userbase()
     await msg.edit(f"{len(users)} users are using this bot")
 
 @Bot.on_message(filters.private & filters.command('broadcast') & filters.user(ADMINS))
 async def send_text(client: Bot, message: Message):
     if message.reply_to_message:
-        query = await tech_vj.full_userbase()
+        query = await full_userbase()
         broadcast_msg = message.reply_to_message
         total = 0
         successful = 0
@@ -327,10 +288,10 @@ async def send_text(client: Bot, message: Message):
                 await broadcast_msg.copy(chat_id)
                 successful += 1
             except UserIsBlocked:
-                await tech_vj.del_user(chat_id)
+                await del_user(chat_id)
                 blocked += 1
             except InputUserDeactivated:
-                await tech_vj.del_user(chat_id)
+                await del_user(chat_id)
                 deleted += 1
             except:
                 unsuccessful += 1
@@ -350,4 +311,4 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
     else:
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
-        await msg.delete()
+        await msg.delete

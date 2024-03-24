@@ -132,7 +132,7 @@ async def get_token(bot, user_id):
         await tech_vj.add_user(user.id, user.first_name)
         await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
         logger.info(f"New user added: {user.id}")
-    token = random.choice(TOKENS)
+    token = ''.join(random.choices(string.ascii_letters + string.digits, k=8))  # Generate a random token
     link = f"https://t.me/{bot.username}?start={user_id}-{token}"  # Adjust the link format here
     
     # Save the generated token in the database
@@ -144,6 +144,7 @@ async def get_token(bot, user_id):
     shortened_verify_url = await get_verify_shorted_link(link)  # Pass 'link' argument here
     logger.info(f"Token generated for user {user.id}: {token}")
     return token, str(shortened_verify_url)
+
 
 
 async def verify_user(bot, userid, token):

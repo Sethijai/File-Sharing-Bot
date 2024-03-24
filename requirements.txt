@@ -11,13 +11,13 @@ aiohttp
 numpy
 yt-dlp
 Pillow
-aiohttp
 hachoir
 olefile
 requests
+aiofiles
 motor[srv]
 beautifulsoup4
-datetime 
+datetime
 pytz 
 requests 
 bs4 

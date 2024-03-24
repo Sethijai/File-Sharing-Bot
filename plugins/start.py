@@ -188,23 +188,28 @@ async def check_verification(bot, userid):
 verified_users = set()  # A set to store verified users
 @Bot.on_message(filters.private & filters.command(["start"]))
 async def start(bot, update):
-    if Config.TECH_VJ_UPDATES_CHANNEL is not None:
-        back = await handle_force_sub(bot, update)
-        if back == 400:
-            return
+    # Check if the update is a Message object
+    if isinstance(update, Message):
+        # Check if the Message object has the message_id attribute
+        if hasattr(update, 'message_id'):
+            # Your existing code
+            if Config.TECH_VJ_UPDATES_CHANNEL is not None:
+                back = await handle_force_sub(bot, update)
+                if back == 400:
+                    return
 
-    if len(update.command) != 2:
-        # Generate verification link and token for the user
-        token, verification_link = await get_token(bot, update.from_user.id)
-        
-        await AddUser(bot, update)
-        await bot.send_message(
-            chat_id=update.chat.id,
-            text=Translation.TECH_VJ_START_TEXT.format(update.from_user.mention),
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Verify", url=verification_link)]]),  # Send the verification link as a button
-            reply_to_message_id=update.message_id
-        )
-        return
+                if len(update.command) != 2:
+                    # Generate verification link and token for the user
+                    token, verification_link = await get_token(bot, update.from_user.id)
+
+                    await AddUser(bot, update)
+                    await bot.send_message(
+                        chat_id=update.chat.id,
+                        text=Translation.TECH_VJ_START_TEXT.format(update.from_user.mention),
+                        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Verify", url=verification_link)]]),  # Send the verification link as a button
+                        reply_to_message_id=update.message_id  # Ensure the update has the message_id attribute
+                    )
+                    return
 
     data = update.command[1]
 

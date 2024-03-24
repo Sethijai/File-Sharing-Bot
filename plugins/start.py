@@ -183,109 +183,114 @@ async def check_verification(bot, userid):
         
 @Bot.on_message(filters.private & filters.command(["start"]))
 async def start(bot, update):
-
-    data = update.command[1]
+    try:
+        data = update.command[1]
+    except IndexError:
+        # Handle the case where there are no command arguments
+        return await update.reply_text("Please provide valid command arguments.")
 
     if data.split("-", 1)[0] == "verify":
         userid = data.split("-", 2)[1]
         token = data.split("-", 3)[2]
         if str(update.from_user.id) != str(userid):
             return await update.reply_text(
-                text="<b>ᴇxᴘɪʀᴇᴅ ʟɪɴᴋ ᴏʀ ɪɴᴠᴀʟɪᴅ ʟɪɴᴋ !</b>",
+                text="<b>Expired link or invalid link!</b>",
                 protect_content=True
             )
         is_valid = await check_token(bot, userid, token)
         if is_valid == True:
             await update.reply_text(
-                text=f"<b>ʜᴇʟʟᴏ {update.from_user.mention} 👋,\nʏᴏᴜ ᴀʀᴇ sᴜᴄᴄᴇssғᴜʟʟʏ ᴠᴇʀɪғɪᴇᴅ !\n\nɴᴏᴡ ʏᴏᴜ ʜᴀᴠᴇ ᴜɴʟɪᴍɪᴛᴇᴅ ᴀᴄᴄᴇss ғᴏʀ ᴀʟʟ ᴜʀʟ ᴜᴘʟᴏᴀᴅɪɴɢ ᴛɪʟʟ ᴛᴏᴅᴀʏ ᴍɪᴅɴɪɢʜᴛ.</b>",
+                text=f"<b>Hello {update.from_user.mention} 👋,\nYou are successfully verified!\n\nNow you have unlimited access for all URL uploading till today midnight.</b>",
                 protect_content=True
             )
             await verify_user(bot, userid, token)
         else:
-            return await process_start_command(bot, update)
-
-async def process_start_command(bot, update):
-    data = update.command[1]
-    text = data
-    if len(text)>7:
-        try:
-            base64_string = text.split(" ", 1)[1]
-        except:
-            return
-        string = await decode(base64_string)
-        argument = string.split("-")
-        if len(argument) == 3:
-            try:
-                start = int(int(argument[1]) / abs(bot.db_channel.id))
-                end = int(int(argument[2]) / abs(bot.db_channel.id))
-            except:
-                return
-            if start <= end:
-                ids = range(start,end+1)
-            else:
-                ids = []
-                i = start
-                while True:
-                    ids.append(i)
-                    i -= 1
-                    if i < end:
-                        break
-        elif len(argument) == 2:
-            try:
-                ids = [int(int(argument[1]) / abs(bot.db_channel.id))]
-            except:
-                return
-        temp_msg = await update.reply_text("Please wait...")
-        try:
-            messages = await get_messages(bot, ids)
-        except:
-            await update.reply_text("Something went wrong..!")
-            return
-        await temp_msg.delete()
-
-        for msg in messages:
-
-            if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
-            else:
-                caption = "" if not msg.caption else msg.caption.html
-
-            if DISABLE_CHANNEL_BUTTON:
-                reply_markup = msg.reply_markup
-            else:
-                reply_markup = None
-
-            try:
-                await msg.copy(chat_id=update.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
-                await asyncio.sleep(0.5)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                await msg.copy(chat_id=update.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
-            except:
-                pass
-        return
+            return await update.reply_text(
+                text="<b>Expired link or invalid link!</b>",
+                protect_content=True
+            )
     else:
-        reply_markup = InlineKeyboardMarkup(
-            [
+        text = update.command[1]
+        if len(text) > 7:
+            try:
+                base64_string = text.split(" ", 1)[1]
+            except IndexError:
+                return await update.reply_text("Invalid base64 string.")
+            string = await decode(base64_string)
+            argument = string.split("-")
+            if len(argument) == 3:
+                try:
+                    start = int(int(argument[1]) / abs(bot.db_channel.id))
+                    end = int(int(argument[2]) / abs(bot.db_channel.id))
+                except ValueError:
+                    return await update.reply_text("Invalid arguments for message retrieval.")
+                if start <= end:
+                    ids = range(start, end+1)
+                else:
+                    ids = []
+                    i = start
+                    while True:
+                        ids.append(i)
+                        i -= 1
+                        if i < end:
+                            break
+            elif len(argument) == 2:
+                try:
+                    ids = [int(int(argument[1]) / abs(bot.db_channel.id))]
+                except ValueError:
+                    return await update.reply_text("Invalid argument for message retrieval.")
+            temp_msg = await update.reply_text("Please wait...")
+            try:
+                messages = await get_messages(bot, ids)
+            except:
+                await update.reply_text("Something went wrong..!")
+                return
+            await temp_msg.delete()
+
+            for msg in messages:
+
+                if bool(CUSTOM_CAPTION) & bool(msg.document):
+                    caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
+                else:
+                    caption = "" if not msg.caption else msg.caption.html
+
+                if DISABLE_CHANNEL_BUTTON:
+                    reply_markup = msg.reply_markup
+                else:
+                    reply_markup = None
+
+                try:
+                    await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    await asyncio.sleep(0.5)
+                except FloodWait as e:
+                    await asyncio.sleep(e.x)
+                    await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                except:
+                    pass
+            return
+        else:
+            reply_markup = InlineKeyboardMarkup(
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
-                    InlineKeyboardButton("🔒 unlock", url="https://shrs.link/FUmxXe")
+                    [
+                        InlineKeyboardButton("😊 About Me", callback_data="about"),
+                        InlineKeyboardButton("🔒 unlock", url="https://shrs.link/FUmxXe")
+                    ]
                 ]
-            ]
-        )
-        await update.reply_text(
-            text = START_MSG.format(
-                first = update.from_user.first_name,
-                last = update.from_user.last_name,
-                username = None if not update.from_user.username else '@' + update.from_user.username,
-                mention = update.from_user.mention,
-                id = update.from_user.id
-            ),
-            reply_markup = reply_markup,
-            disable_web_page_preview = True,
-            quote = True
-        )
-        return
+            )
+            await update.reply_text(
+                text=START_MSG.format(
+                    first=update.from_user.first_name,
+                    last=update.from_user.last_name,
+                    username=None if not update.from_user.username else '@' + update.from_user.username,
+                    mention=update.from_user.mention,
+                    id=update.from_user.id
+                ),
+                reply_markup=reply_markup,
+                disable_web_page_preview=True,
+                quote=True
+            )
+            return
+
 
 #=====================================================================================##
 

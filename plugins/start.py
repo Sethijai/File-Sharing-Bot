@@ -13,6 +13,9 @@ from datetime import datetime, date
 import string
 from typing import List
 from database.users_chats_db import tech_vj
+from database.adduser import AddUser
+from translation import Translation
+
 from bs4 import BeautifulSoup
 import requests
 import aiohttp
@@ -181,13 +184,26 @@ async def check_verification(bot, userid):
     else:
         return False
         
+verified_users = set()  # A set to store verified users
+
 @Bot.on_message(filters.private & filters.command(["start"]))
 async def start(bot, update):
-    try:
-        data = update.command[1]
-    except IndexError:
-        # Handle the case where there are no command arguments
-        return await update.reply_text("Please provide valid command arguments.")
+    if Config.TECH_VJ_UPDATES_CHANNEL is not None:
+        back = await handle_force_sub(bot, update)
+        if back == 400:
+            return
+
+    if len(update.command) != 2:
+        await AddUser(bot, update)
+        await bot.send_message(
+            chat_id=update.chat.id,
+            text=Translation.TECH_VJ_START_TEXT.format(update.from_user.mention),
+            reply_markup=Translation.TECH_VJ_START_BUTTONS,
+            reply_to_message_id=update.id
+        )
+        return
+
+    data = update.command[1]
 
     if data.split("-", 1)[0] == "verify":
         userid = data.split("-", 2)[1]
@@ -198,11 +214,12 @@ async def start(bot, update):
                 protect_content=True
             )
         is_valid = await check_token(bot, userid, token)
-        if is_valid == True:
+        if is_valid:
             await update.reply_text(
                 text=f"<b>Hello {update.from_user.mention} 👋,\nYou are successfully verified!\n\nNow you have unlimited access for all URL uploading till today midnight.</b>",
                 protect_content=True
             )
+            verified_users.add(update.from_user.id)  # Add user to verified set
             await verify_user(bot, userid, token)
         else:
             return await update.reply_text(
@@ -210,22 +227,37 @@ async def start(bot, update):
                 protect_content=True
             )
     else:
-        text = update.command[1]
+        # Check if user is verified, if not, prevent further commands
+        if update.from_user.id not in verified_users:
+            await update.reply_text(
+                text="<b>You need to verify first!</b>",
+                protect_content=True
+            )
+            return
+
+        # Handling start command for a client
+        id = update.from_user.id
+        if not await present_user(id):
+            try:
+                await add_user(id)
+            except:
+                pass
+        text = update.text
         if len(text) > 7:
             try:
                 base64_string = text.split(" ", 1)[1]
-            except IndexError:
-                return await update.reply_text("Invalid base64 string.")
+            except:
+                return
             string = await decode(base64_string)
             argument = string.split("-")
             if len(argument) == 3:
                 try:
                     start = int(int(argument[1]) / abs(bot.db_channel.id))
                     end = int(int(argument[2]) / abs(bot.db_channel.id))
-                except ValueError:
-                    return await update.reply_text("Invalid arguments for message retrieval.")
+                except:
+                    return
                 if start <= end:
-                    ids = range(start, end+1)
+                    ids = range(start, end + 1)
                 else:
                     ids = []
                     i = start
@@ -237,9 +269,9 @@ async def start(bot, update):
             elif len(argument) == 2:
                 try:
                     ids = [int(int(argument[1]) / abs(bot.db_channel.id))]
-                except ValueError:
-                    return await update.reply_text("Invalid argument for message retrieval.")
-            temp_msg = await update.reply_text("Please wait...")
+                except:
+                    return
+            temp_msg = await update.reply("Please wait...")
             try:
                 messages = await get_messages(bot, ids)
             except:
@@ -248,9 +280,9 @@ async def start(bot, update):
             await temp_msg.delete()
 
             for msg in messages:
-
                 if bool(CUSTOM_CAPTION) & bool(msg.document):
-                    caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
+                    caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html,
+                                                    filename=msg.document.file_name)
                 else:
                     caption = "" if not msg.caption else msg.caption.html
 
@@ -260,11 +292,13 @@ async def start(bot, update):
                     reply_markup = None
 
                 try:
-                    await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                                   reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                     await asyncio.sleep(0.5)
                 except FloodWait as e:
                     await asyncio.sleep(e.x)
-                    await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                    await msg.copy(chat_id=update.from_user.id, caption=caption, parse_mode=ParseMode.HTML,
+                                   reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                 except:
                     pass
             return
@@ -290,7 +324,6 @@ async def start(bot, update):
                 quote=True
             )
             return
-
 
 #=====================================================================================##
 

@@ -29,8 +29,41 @@ VERIFIED = {}
 LOG_TEXT_P = """#NewUser
 ID - <code>{}</code>
 Nᴀᴍᴇ - {}"""
-
 logger = logging.getLogger(__name__)
+
+import motor.motor_asyncio
+from config import Config
+import random
+import string
+
+DATABASE_NAME = "vjbotztechvj"
+DATABASE_URI = "mongodb+srv://Cluster0:Cluster0@cluster0.c07xkuf.mongodb.net/?retryWrites=true&w=majority"
+
+class Database:
+    def __init__(self, uri, database_name):
+        self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
+        self.db = self._client[database_name]
+        self.users = self.db.users
+
+    async def create_user_token(self, user_id):
+        token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
+        await self.users.update_one({"_id": user_id}, {"$set": {"token": token}}, upsert=True)
+        return token
+    
+    async def get_user_token(self, user_id):
+        user = await self.users.find_one({"_id": user_id})
+        if user:
+            return user.get("token")
+        return None
+    
+    async def verify_user_token(self, user_id, token):
+        user = await self.users.find_one({"_id": user_id, "token": token})
+        if user:
+            await self.users.update_one({"_id": user_id}, {"$unset": {"token": ""}})
+            return True
+        return False
+
+tech_vj = Database(DATABASE_URI, DATABASE_NAME)
 
 async def get_verify_shorted_link(user_id, token, link):
     API = Config.TECH_VJ_API

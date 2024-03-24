@@ -137,7 +137,6 @@ async def get_token(bot, user_id):
     logger.info(f"Token generated for user {user.id}: {token}")
     return token, str(shortened_verify_url)
 
-
 async def verify_user(bot, userid, token):
     user = await bot.get_users(userid)
     if not await tech_vj.is_user_exist(user.id):
@@ -192,14 +191,29 @@ async def start_command(client: Client, message: Message):
     
     # Send the verification link to the user
     await message.reply(f"Please verify your account by clicking on the link: {verification_link}")
+            # Send the verification link to the user
+        await message.reply(f"Please verify your account by clicking on the link: {verification_link}")
 
-    # Add user to the database if not already present
-    id = message.from_user.id
-    if not await present_user(id):
-        try:
-            await add_user(id)
-        except:
-            pass
+        # Add user to the database if not already present
+        id = message.from_user.id
+        if not await present_user(id):
+            try:
+                await add_user(id)
+            except:
+                pass
+        
+        # Stop execution if the token is not verified
+        return
+
+    # Check if the user's token is already verified
+    token_verified = await check_verification(client, user_id)
+    
+    if not token_verified:
+        # If token is not verified, inform the user and exit
+        await message.reply("You need to verify your account first.")
+        return
+    
+    # Token is verified, continue with the regular start command logic
     
     text = message.text
     if len(text) > 7:
@@ -281,8 +295,6 @@ async def start_command(client: Client, message: Message):
         )
         return
 
-
-    
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
@@ -377,4 +389,4 @@ Unsuccessful: <code>{unsuccessful}</code></b>"""
     else:
         msg = await message.reply(REPLY_ERROR)
         await asyncio.sleep(8)
-        await msg.delete
+        await msg.delete()

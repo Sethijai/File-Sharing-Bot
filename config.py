@@ -15,12 +15,12 @@ def is_enabled(value, default):
 
 class Config(object):
     # Bot Information 
-    TECH_VJ_BOT_TOKEN = os.environ.get("TECH_VJ_BOT_TOKEN", "")
-    TECH_VJ_BOT_USERNAME = os.environ.get("TECH_VJ_BOT_USERNAME", "") # Bot username without @.
+    TECH_VJ_BOT_TOKEN = os.environ.get("TECH_VJ_BOT_TOKEN", "7062468773:AAHQTrhqussRoplB365l6XwdZKaYO_WSAm0")
+    TECH_VJ_BOT_USERNAME = os.environ.get("TECH_VJ_BOT_USERNAME", "Terabox_sis_bot") # Bot username without @.
     
     # The Telegram API things
-    TECH_VJ_API_ID = int(os.environ.get("TECH_VJ_API_ID", ""))
-    TECH_VJ_API_HASH = os.environ.get("TECH_VJ_API_HASH", "")
+    TECH_VJ_API_ID = int(os.environ.get("TECH_VJ_API_ID", "22505271"))
+    TECH_VJ_API_HASH = os.environ.get("TECH_VJ_API_HASH", "c89a94fcfda4bc06524d0903977fc81e")
     
     # the download location, where the HTTP Server runs
     TECH_VJ_DOWNLOAD_LOCATION = "./DOWNLOADS"
@@ -45,7 +45,7 @@ class Config(object):
     TECH_VJ_PROCESS_MAX_TIMEOUT = 3600
     
     # your telegram account id
-    TECH_VJ_OWNER_ID = int(os.environ.get("TECH_VJ_OWNER_ID", "")) 
+    TECH_VJ_OWNER_ID = int(os.environ.get("TECH_VJ_OWNER_ID", "6695586027")) 
     TECH_VJ_SESSION_NAME = "VJ-URL-UPLOADER-BOT"
     
     # database uri (mongodb)
@@ -53,10 +53,10 @@ class Config(object):
     TECH_VJ_MAX_RESULTS = "50"
 
     # channel information
-    TECH_VJ_LOG_CHANNEL = int(os.environ.get("TECH_VJ_LOG_CHANNEL", "")) # your log channel id and make bot admin in log channel with full right 
+    TECH_VJ_LOG_CHANNEL = int(os.environ.get("TECH_VJ_LOG_CHANNEL", "-1002075726565")) # your log channel id and make bot admin in log channel with full right 
     
     # if you want force subscribe then give your channel id below else leave blank
-    tech_vj_update_channel = environ.get('TECH_VJ_UPDATES_CHANNEL', '') # your update channel id and make bot admin in update channel with full right
+    tech_vj_update_channel = environ.get('TECH_VJ_UPDATES_CHANNEL', '-1001982072622') # your update channel id and make bot admin in update channel with full right
     TECH_VJ_UPDATES_CHANNEL = int(tech_vj_update_channel) if tech_vj_update_channel and id_pattern.search(tech_vj_update_channel) else None  
     
     # Url Shortner Information 
@@ -66,19 +66,19 @@ class Config(object):
     TECH_VJ_TUTORIAL = os.environ.get("TECH_VJ_TUTORIAL", "https://t.me/How_To_Open_Linkl")
 
 #Bot token @Botfather
-TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "7062468773:AAHQTrhqussRoplB365l6XwdZKaYO_WSAm0")
 
 #Your API ID from my.telegram.org
-APP_ID = int(os.environ.get("APP_ID", "29265721"))
+APP_ID = int(os.environ.get("APP_ID", "22505271"))
 
 #Your API Hash from my.telegram.org
-API_HASH = os.environ.get("API_HASH", "75d0d2c703d9a6c4cda28ca77f8ca582")
+API_HASH = os.environ.get("API_HASH", "c89a94fcfda4bc06524d0903977fc81e")
 
 #Your db channel Id
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1001670120331"))
+CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1002075726565"))
 
 #OWNER ID
-OWNER_ID = int(os.environ.get("OWNER_ID", "6315606167"))
+OWNER_ID = int(os.environ.get("OWNER_ID", "6695586027"))
 
 #Port
 PORT = os.environ.get("PORT", "8080")

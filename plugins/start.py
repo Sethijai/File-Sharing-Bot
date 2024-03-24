@@ -198,8 +198,7 @@ async def start(bot, update):
         await bot.send_message(
             chat_id=update.chat.id,
             text=Translation.TECH_VJ_START_TEXT.format(update.from_user.mention),
-            reply_markup=Translation.TECH_VJ_START_BUTTONS,
-            reply_to_message_id=update.id
+            reply_to_message_id=update.message_id
         )
         return
 
@@ -211,27 +210,27 @@ async def start(bot, update):
         if str(update.from_user.id) != str(userid):
             return await update.reply_text(
                 text="<b>Expired link or invalid link!</b>",
-                protect_content=True
+                parse_mode="html"
             )
         is_valid = await check_token(bot, userid, token)
         if is_valid:
             await update.reply_text(
                 text=f"<b>Hello {update.from_user.mention} 👋,\nYou are successfully verified!\n\nNow you have unlimited access for all URL uploading till today midnight.</b>",
-                protect_content=True
+                parse_mode="html"
             )
             verified_users.add(update.from_user.id)  # Add user to verified set
             await verify_user(bot, userid, token)
         else:
             return await update.reply_text(
                 text="<b>Expired link or invalid link!</b>",
-                protect_content=True
+                parse_mode="html"
             )
     else:
         # Check if user is verified, if not, prevent further commands
         if update.from_user.id not in verified_users:
             await update.reply_text(
                 text="<b>You need to verify first!</b>",
-                protect_content=True
+                parse_mode="html"
             )
             return
 
@@ -324,6 +323,7 @@ async def start(bot, update):
                 quote=True
             )
             return
+
 
 #=====================================================================================##
 

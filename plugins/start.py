@@ -106,6 +106,25 @@ async def check_token(bot, userid, token):
     user = await bot.get_users(userid)
     logger.info(f"Checking token for user {user.id}: {token}")
 
+async def check_verification(bot, userid):
+    user = await bot.get_users(userid)
+    if not await tech_vj.is_user_exist(user.id):
+        await tech_vj.add_user(user.id, user.first_name)
+        await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
+        logger.info(f"New user added: {user.id}")
+    tz = pytz.timezone('Asia/Kolkata')
+    today = date.today()
+    if user.id in VERIFIED.keys():
+        EXP = VERIFIED[user.id]
+        years, month, day = EXP.split('-')
+        comp = date(int(years), int(month), int(day))
+        if comp < today:
+            return False
+        else:
+            return True
+    else:
+        return False
+
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id
@@ -142,6 +161,7 @@ async def start_command(client: Client, message: Message):
             await message.reply(f"Click on the link to verify: {shortened_url}")
             return
     else:
+        # If token is verified, continue with the regular start command logic
         # If token is verified, continue with the regular start command logic
         text = message.text
         if len(text) > 7:

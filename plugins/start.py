@@ -309,6 +309,23 @@ async def start_command(client: Client, message: Message):
         # Log the verified user information
         logger.info(f"Verified user: ID - {message.from_user.id}, Name - {message.from_user.first_name}")
         return
+        
+@Bot.on_message(filters.private & filters.command('verify'))
+async def verify_token(client: Client, message: Message):
+    user_id = message.from_user.id
+    try:
+        token = message.text.split(" ")[1]
+    except IndexError:
+        await message.reply("Please provide the token to verify.")
+        return
+    
+    # Check if the provided token matches the generated token
+    if TOKENS.get(user_id, {}).get(token):
+        # Mark the token as verified
+        await verify_user(client, user_id, token)
+        await message.reply("Congratulations! Your token has been verified.")
+    else:
+        await message.reply("Invalid token. Please try again with the correct token.")
 
 
 #=====================================================================================##

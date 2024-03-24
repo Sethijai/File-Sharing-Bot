@@ -73,142 +73,39 @@ class Database:
 
 tech_vj = Database(DATABASE_URI, DATABASE_NAME)
 
-"""
-class Database:
-    def __init__(self, uri, database_name):
-        self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
-        self.db = self._client[database_name]
-        self.users = self.db.users
-
-    async def is_user_exist(self, user_id):
-        user = await self.users.find_one({"_id": user_id})
-        return bool(user)
-    
-    async def add_user(self, user_id, name):
-        user = {"_id": user_id, "name": name}  # Example document
-        await self.users.insert_one(user)
-        
-    async def create_user_token(self, user_id):
-        token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
-        await self.users.update_one({"_id": user_id}, {"$set": {"token": token}}, upsert=True)
-        return token
-    
-    async def get_user_token(self, user_id):
-        user = await self.users.find_one({"_id": user_id})
-        if user:
-            return user.get("token")
-        return None
-    
-    async def verify_user_token(self, user_id, token):
-        user = await self.users.find_one({"_id": user_id, "token": token})
-        if user:
-            await self.users.update_one({"_id": user_id}, {"$unset": {"token": ""}})
-            return True
-        return False """
-
-
-async def get_verify_shorted_link(user_id, token, link):
-    API = Config.TECH_VJ_API
-    URL = Config.TECH_VJ_URL
-    https = link.split(":")[0]
-    if "http" == https:
-        https = "https"
-        link = link.replace("http", https)
-
-    if URL == "api.shareus.in":
-        url = f"https://{URL}/shortLink"
-        params = {"token": API,
-                  "format": "json",
-                  "link": link,
-                  }
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, raise_for_status=True, ssl=False) as response:
-                    data = await response.json(content_type="text/html")
-                    if data["status"] == "success":
-                        return data["shortlink"]
-                    else:
-                        logger.error(f"Error: {data['message']}")
-                        return f'https://{URL}/shortLink?token={API}&format=json&link={link}'
-
-        except Exception as e:
-            logger.error(e)
-            return f'https://{URL}/shortLink?token={API}&format=json&link={link}'
-    else:
-        url = f'https://{URL}/api'
-        params = {'api': API,
-                  'url': link,
-                  }
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, raise_for_status=True, ssl=False) as response:
-                    data = await response.json()
-                    if data["status"] == "success":
-                        return data['shortenedUrl']
-                    else:
-                        logger.error(f"Error: {data['message']}")
-                        return f'https://{URL}/api?api={API}&link={link}'
-
-        except Exception as e:
-            logger.error(e)
-            return f'{URL}/api?api={API}&link={link}'
-
-
-async def check_token(bot, userid, token):
-    user = await bot.get_users(userid)
-    if not await tech_vj.is_user_exist(user.id):
-        await tech_vj.add_user(user.id, user.first_name)
-        await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
-    if user.id in TOKENS.keys():
-        TKN = TOKENS[user.id]
-        if token in TKN.keys():
-            is_used = TKN[token]
-            if is_used == True:
-                return False
-            else:
-                return True
-    else:
-        return False
+# Configure logging
+logging.basicConfig(filename='bot.log', format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 async def get_token(bot, user_id):
     user = await bot.get_users(user_id)
     if not await tech_vj.is_user_exist(user.id):
         await tech_vj.add_user(user.id, user.first_name)
         await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
+        logger.info(f"New user added: {user.id}")
     token = ''.join(random.choices(string.ascii_letters + string.digits, k=7))
     link = f"https://t.me/{bot.username}?start={user_id}-{token}"  # Adjust the link format here
     TOKENS[user.id] = {token: False}
     shortened_verify_url = await get_verify_shorted_link(user.id, token, link)  # Pass 'link' argument here
+    logger.info(f"Token generated for user {user.id}: {token}")
     return token, str(shortened_verify_url)
-    
+
 async def verify_user(bot, userid, token):
     user = await bot.get_users(userid)
     if not await tech_vj.is_user_exist(user.id):
         await tech_vj.add_user(user.id, user.first_name)
         await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
+        logger.info(f"New user added: {user.id}")
     TOKENS[user.id] = {token: True}
     tz = pytz.timezone('Asia/Kolkata')
     today = date.today()
     VERIFIED[user.id] = str(today)
+    logger.info(f"User {user.id} verified with token: {token}")
 
-async def check_verification(bot, userid):
+async def check_token(bot, userid, token):
     user = await bot.get_users(userid)
-    if not await tech_vj.is_user_exist(user.id):
-        await tech_vj.add_user(user.id, user.first_name)
-        await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(user.id, user.mention))
-    tz = pytz.timezone('Asia/Kolkata')
-    today = date.today()
-    if user.id in VERIFIED.keys():
-        EXP = VERIFIED[user.id]
-        years, month, day = EXP.split('-')
-        comp = date(int(years), int(month), int(day))
-        if comp<today:
-            return False
-        else:
-            return True
-    else:
-        return False
-        
+    logger.info(f"Checking token for user {user.id}: {token}")
+
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     user_id = message.from_user.id

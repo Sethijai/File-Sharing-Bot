@@ -145,7 +145,9 @@ async def get_token(bot, user_id):
     # Save the generated token in the database
     await tech_vj.create_user_token(user.id, token)
     
+    # Update the TOKENS dictionary with the user ID and token
     TOKENS[user.id] = {token: False}
+    
     shortened_verify_url = await get_verify_shorted_link(link)  # Pass 'link' argument here
     logger.info(f"Token generated for user {user.id}: {token}")
     return token, str(shortened_verify_url)

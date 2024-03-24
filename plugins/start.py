@@ -176,41 +176,39 @@ async def check_verification(bot, userid):
             return True
     else:
         return False
-
-@Bot.on_message(filters.command('start') & filters.private)
+@Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
-    user_id = message.from_user.id
+    id = message.from_user.id
     
-    # Check if the user's token is already verified
-    token_verified = await check_verification(client, user_id)
+    # Check if the user is already verified
+    token_verified = await check_verification(client, id)
     
     if token_verified:
-        # If token is verified, inform the user and exit
+        # If user is already verified, inform and exit
         await message.reply("Welcome back! You are already verified.")
         return
     
-    # Check if the user already has a token
-    existing_token = await tech_vj.get_user_token(user_id)
+    # Get the token for the user
+    token, verification_link = await get_token(client, id)
     
-    if existing_token:
-        # If user already has a token, check its validity
-        is_valid = await is_token_valid(user_id, existing_token)
+    # If a token is provided in the message, verify it
+    if len(message.command) > 1:
+        provided_token = message.command[1]
+        is_valid = await is_token_valid(id, provided_token)
         if is_valid:
-            # If token is valid, inform the user and exit
-            await message.reply("Welcome back! You are already verified.")
+            # If the provided token is valid, verify the user and inform them
+            await verify_user(client, id, provided_token)
+            await message.reply("Your account has been verified successfully. You can now use the bot.")
             return
         else:
-            # If token is invalid, inform the user and generate a new token
-            await message.reply("Your previous token is invalid. Generating a new one...")
-    
-    # Generate a new token for the user
-    token, verification_link = await get_token(client, user_id)
+            # If the provided token is invalid, inform the user and exit
+            await message.reply("Invalid token. Please use the verification link to get a valid token.")
+            return
     
     # Send the verification link to the user
     await message.reply(f"Please verify your account by clicking on the link: {verification_link}")
 
     # Add user to the database if not already present
-    id = message.from_user.id
     if not await present_user(id):
         try:
             await add_user(id)
@@ -218,7 +216,7 @@ async def start_command(client: Client, message: Message):
             pass
     
     # Check if the token is verified
-    token_verified = await check_verification(client, user_id)
+    token_verified = await check_verification(client, id)
     if not token_verified:
         # If token is not verified, stop execution
         return
@@ -305,28 +303,7 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview=True,
             quote=True
         )
-
-        # Log the verified user information
-        logger.info(f"Verified user: ID - {message.from_user.id}, Name - {message.from_user.first_name}")
         return
-        
-@Bot.on_message(filters.private & filters.command('verify'))
-async def verify_token(client: Client, message: Message):
-    user_id = message.from_user.id
-    try:
-        token = message.text.split(" ")[1]
-    except IndexError:
-        await message.reply("Please provide the token to verify.")
-        return
-    
-    # Check if the provided token matches the generated token
-    if TOKENS.get(user_id, {}).get(token):
-        # Mark the token as verified
-        await verify_user(client, user_id, token)
-        await message.reply("Congratulations! Your token has been verified.")
-    else:
-        await message.reply("Invalid token. Please try again with the correct token.")
-
 
 #=====================================================================================##
 

@@ -1,28 +1,19 @@
+
 # --- For-Bot-Working --------- #
 pyrogram
 TgCrypto
-pyromod==1.5
+pyromod
 # --- For-Database ------------ #
 pymongo
+motor
+umongo
 dnspython
+marshmallow
 # --- For-Web-Response ------- #
-aiohttp
-#----------------#
-numpy
-yt-dlp
-Pillow
-hachoir
-olefile
+pytz
 requests
+bs4
+shortzy
+aiohttp
 aiofiles
-motor[srv]
-beautifulsoup4
-datetime
-pytz 
-requests 
-bs4 
-Flask==1.1.2
-gunicorn==20.1.0
-Jinja2==3.0.3
-werkzeug==2.0.2
-itsdangerous==2.0.1
+asyncio

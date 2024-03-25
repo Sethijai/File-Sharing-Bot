@@ -1,14 +1,1 @@
-from pyrogram import Client
-from database.access import techvj
-from pyrogram.types import Message
-from config import Config
-
-LOG_TEXT_P = """#NewUser
-ID - <code>{}</code>
-Nᴀᴍᴇ - {}"""
-
-
-async def AddUser(bot: Client, update: Message):
-    if not await techvj.is_user_exist(update.from_user.id):
-           await techvj.add_user(update.from_user.id)
-           await bot.send_message(Config.TECH_VJ_LOG_CHANNEL, LOG_TEXT_P.format(update.from_user.id, update.from_user.mention))
+#https://www.youtube.com/channel/UC7tAa4hho37iNv731_6RIOg

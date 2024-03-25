@@ -1,3 +1,5 @@
+'''
+
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
@@ -114,3 +116,4 @@ class Translation(object):
     TECH_VJ_SLOW_URL_DECED = "<b>Gᴏꜱʜ ᴛʜᴀᴛ ꜱᴇᴇᴍꜱ ᴛᴏ ʙᴇ ᴀ ᴠᴇʀʏ ꜱʟᴏᴡ URL. Sɪɴᴄᴇ ʏᴏᴜ ᴡᴇʀᴇ ꜱᴄʀᴇᴡɪɴɢ ᴍʏ ʜᴏᴍᴇ, I ᴀᴍ ɪɴ ɴᴏ ᴍᴏᴏᴅ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴛʜɪꜱ ғɪʟᴇ. ᴍᴇ ᴀ ғᴀꜱᴛ URL ꜱᴏ ᴛʜᴀᴛ I ᴄᴀɴ ᴜᴘʟᴏᴀᴅ ᴛᴏ Tᴇʟᴇɢʀᴀᴍ, ᴡɪᴛʜᴏᴜᴛ ᴍᴇ ꜱʟᴏᴡɪɴɢ ᴅᴏᴡɴ ғᴏʀ ᴏᴛʜᴇʀ ᴜꜱᴇʀꜱ.</b>"
 
     TECH_VJ_ERROR_YTDLP = "<b>ᴘʟᴇᴀꜱᴇ ʀᴇᴘᴏʀᴛ ᴛʜɪꜱ ɪꜱꜱᴜᴇ ᴏɴ https://yt-dl.org/bug . ᴍᴀᴋᴇ ꜱᴜʀᴇ ʏᴏᴜ ᴀʀᴇ ᴜꜱɪɴɢ ᴛʜᴇ ʟᴀᴛᴇꜱᴛ ᴠᴇʀꜱɪᴏɴ; ꜱᴇᴇ  https://yt-dl.org/update ᴏɴ ʜᴏᴡ ᴛᴏ ᴜᴘᴅᴀᴛᴇ. ʙᴇ ꜱᴜʀᴇ ᴛᴏ ᴄᴀʟʟ ʏᴏᴜᴛᴜʙᴇ-ᴅʟ ᴡɪᴛʜ ᴛʜᴇ --ᴠᴇʀʙᴏꜱᴇ ғʟᴀɢ ᴀɴᴅ ɪɴᴄʟᴜᴅᴇ ɪᴛꜱ ᴄᴏᴍᴘʟᴇᴛᴇ ᴏᴜᴛᴘᴜᴛ.</b>"
+'''

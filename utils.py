@@ -1,3 +1,5 @@
+'''
+
 import asyncio
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
@@ -125,3 +127,4 @@ async def check_verification(bot, userid):
             return True
     else:
         return False
+'''

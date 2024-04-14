@@ -1,5 +1,5 @@
 from bot import Bot
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram import filters
 from config import ADMINS, BOT_STATS_TEXT, USER_REPLY_TEXT
 from datetime import datetime
@@ -16,4 +16,9 @@ async def stats(bot: Bot, message: Message):
 @Bot.on_message(filters.private & filters.incoming)
 async def useless(_,message: Message):
     if USER_REPLY_TEXT:
-        await message.reply(USER_REPLY_TEXT)
+        keyboard = InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("Visit Website", url="https://example.com")]
+            ]
+        )
+        await message.reply_text(USER_REPLY_TEXT, reply_markup=keyboard)

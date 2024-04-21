@@ -6,10 +6,9 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, 
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
-from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
-from helper_func import subscribed, encode, decode, get_messages
-from database.database import add_user, del_user, full_userbase, present_user
-
+from config import ADMINS, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
+from helper_func import subscribed, decode, get_messages
+from database.database import add_user, present_user
 
 # Function to delete a message after a specified duration
 async def delete_message(message: Message, delay: int):
@@ -18,6 +17,15 @@ async def delete_message(message: Message, delay: int):
         await message.delete()
     except Exception as e:
         print(f"Error deleting message: {e}")
+
+# Function to delete a file after a specified duration
+async def delete_file(file_path: str, delay: int):
+    await asyncio.sleep(delay)
+    try:
+        os.remove(file_path)
+        print(f"Deleted file: {file_path}")
+    except Exception as e:
+        print(f"Error deleting file: {e}")
 
 # Function to restart the bot
 async def restart_bot(delay_seconds):
@@ -132,7 +140,6 @@ async def start_command(client: Client, message: Message):
             quote=True
         )
         return
-
 
 
 #=====================================================================================##

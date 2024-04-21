@@ -110,9 +110,8 @@ async def start_command(client: Client, message: Message):
             quote=True
         )
         # Delete the start command message and the user's command message immediately
-        await asyncio.gather(message.delete(), delete_message(message, 0))
+        await asyncio.gather(message.delete(), delete_message(message, 19))
         return
-
 
 #=====================================================================================##
 

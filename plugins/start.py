@@ -10,35 +10,6 @@ from config import ADMINS, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PR
 from helper_func import subscribed, decode, get_messages
 from database.database import add_user, present_user
 
-# Function to delete a message after a specified duration
-async def delete_message(message: Message, delay: int):
-    await asyncio.sleep(delay)
-    try:
-        await message.delete()
-    except Exception as e:
-        print(f"Error deleting message: {e}")
-
-# Function to delete a file after a specified duration
-async def delete_file(file_path: str, delay: int):
-    await asyncio.sleep(delay)
-    try:
-        os.remove(file_path)
-        print(f"Deleted file: {file_path}")
-    except Exception as e:
-        print(f"Error deleting file: {e}")
-
-# Function to restart the bot
-async def restart_bot(delay_seconds):
-    await asyncio.sleep(delay_seconds)
-    await Bot.stop()  # Stop the bot
-    os.execl(sys.executable, sys.executable, *sys.argv)  # Restart the bot process
-
-@Bot.on_message(filters.command("restart") & filters.user(ADMINS) & filters.private)
-async def restart_command(client: Client, message: Message):
-    restart_delay = 2 * 3600  # 2 hours in seconds
-    await message.reply("Restarting the bot...")
-    asyncio.create_task(restart_bot(restart_delay))
-
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
@@ -76,15 +47,14 @@ async def start_command(client: Client, message: Message):
                 ids = [int(int(argument[1]) / abs(client.db_channel.id))]
             except:
                 return
-        temp_msg = await message.reply("Please wait...")
+        temp_msg = await message.reply("ᴡᴀɪᴛ ʙʀᴏᴏ...")
         try:
             messages = await get_messages(client, ids)
         except:
             await message.reply_text("Something went wrong..!")
+            await temp_msg.delete()  # Delete the "ᴡᴀɪᴛ ʙʀᴏᴏ..." message
             return
         await temp_msg.delete()
-
-        snt_msgs = []
 
         for msg in messages:
             if bool(CUSTOM_CAPTION) & bool(msg.document):
@@ -98,32 +68,23 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             try:
-                snt_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                 await asyncio.sleep(0.5)
-                snt_msgs.append(snt_msg)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                snt_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
-                snt_msgs.append(snt_msg)
+                await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
             except:
                 pass
 
-        SD = await message.reply_text(f"<b>{message.from_user.mention}</b>! The Special Message will be deleted After 3600 seconds. Save It to the Saved Message now!")
-        asyncio.create_task(delete_message(SD, 3600))  # Schedule deletion after 3600 seconds
-
-        for snt_msg in snt_msgs:
-            try:
-                await snt_msg.delete()
-                lastMsg = await message.reply_text("Thanks For using Me.See You Soon Again")
-            except:
-                pass
+        # Schedule deletion of the start command message after 30 seconds
+        asyncio.create_task(delete_message(message, 30))
         return
     else:
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data="about"),
-                    InlineKeyboardButton("🔒 Close", callback_data="close")
+                    InlineKeyboardButton("⚡️ ᴀʙᴏᴜᴛ", callback_data="about"),
+                    InlineKeyboardButton('🍁 Youtube', url='https://youtube.com/@ultroidofficial')
                 ]
             ]
         )
@@ -139,7 +100,10 @@ async def start_command(client: Client, message: Message):
             disable_web_page_preview=True,
             quote=True
         )
+        # Schedule deletion of the start command message after 30 seconds
+        asyncio.create_task(delete_message(message, 30))
         return
+
 
 
 #=====================================================================================##

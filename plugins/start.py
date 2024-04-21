@@ -25,7 +25,7 @@ async def restart_bot(delay_seconds):
     await Bot.stop()  # Stop the bot
     os.execl(sys.executable, sys.executable, *sys.argv)  # Restart the bot process
 
-@Bot.on_message(filters.command("restart") & filters.user(ADMINS))
+@Bot.on_message(filters.command("restart") & filters.user(ADMINS) & filters.private)
 async def restart_command(client: Client, message: Message):
     restart_delay = 2 * 3600  # 2 hours in seconds
     await message.reply("Restarting the bot...")

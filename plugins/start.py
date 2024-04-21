@@ -1,14 +1,15 @@
 import os
 import asyncio
-from pyrogram import Client, filters
+from pyrogram import Client, filters, __version__
 from pyrogram.enums import ParseMode
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
-from config import ADMINS, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
-from helper_func import subscribed, decode, get_messages
-from database.database import add_user, present_user
+from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
+from helper_func import subscribed, encode, decode, get_messages
+from database.database import add_user, del_user, full_userbase, present_user
+
 
 # Function to delete a message after a specified duration
 async def delete_message(message: Message, delay: int):

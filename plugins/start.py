@@ -1,7 +1,7 @@
 #ultroid_official (TG )
 import os
 import asyncio
-from pyrogram import Client, filters, version
+from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated

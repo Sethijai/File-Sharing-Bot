@@ -1,37 +1,23 @@
 #ultroid_official (TG )
-import asyncio
-import base64
-import logging
 import os
-import random
-import re
-import string
-import time
-
-from pyrogram import Client, filters, __version__
+import asyncio
+from pyrogram import Client, filters, version
 from pyrogram.enums import ParseMode
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
 from bot import Bot
-from config import (
-    ADMINS,
-    FORCE_MSG,
-    START_MSG,
-    CUSTOM_CAPTION,
-    IS_VERIFY,
-    VERIFY_EXPIRE,
-    SHORTLINK_API,
-    SHORTLINK_URL,
-    DISABLE_CHANNEL_BUTTON,
-    PROTECT_CONTENT,
-    TUT_VID,
-    OWNER_ID,
-)
-from helper_func import subscribed, encode, decode, get_messages, get_shortlink, get_verify_status, update_verify_status, get_exp_time
+from config import ADMINS, FORCE_MSG, START_MSG, CUSTOM_CAPTION, DISABLE_CHANNEL_BUTTON, PROTECT_CONTENT
+from helper_func import subscribed, encode, decode, get_messages
 from database.database import add_user, del_user, full_userbase, present_user
-from shortzy import Shortzy
 
+# Function to delete a message after a specified duration
+async def delete_message(message: Message, delay: int):
+    await asyncio.sleep(delay)
+    try:
+        await message.delete()
+    except Exception as e:
+        print(f"Error deleting message: {e}")
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
@@ -42,7 +28,7 @@ async def start_command(client: Client, message: Message):
         except:
             pass
     text = message.text
-    if len(text)>7:
+    if len(text) > 7:
         try:
             base64_string = text.split(" ", 1)[1]
         except:
@@ -56,7 +42,7 @@ async def start_command(client: Client, message: Message):
             except:
                 return
             if start <= end:
-                ids = range(start,end+1)
+                ids = range(start, end+1)
             else:
                 ids = []
                 i = start
@@ -78,10 +64,11 @@ async def start_command(client: Client, message: Message):
             return
         await temp_msg.delete()
 
-        for msg in messages:
+        snt_msgs = []
 
+        for msg in messages:
             if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(previouscaption = "" if not msg.caption else msg.caption.html, filename = msg.document.file_name)
+                caption = CUSTOM_CAPTION.format(previouscaption="" if not msg.caption else msg.caption.html, filename=msg.document.file_name)
             else:
                 caption = "" if not msg.caption else msg.caption.html
 
@@ -91,11 +78,23 @@ async def start_command(client: Client, message: Message):
                 reply_markup = None
 
             try:
-                await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+                snt_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
                 await asyncio.sleep(0.5)
+                snt_msgs.append(snt_msg)
             except FloodWait as e:
                 await asyncio.sleep(e.x)
-                await msg.copy(chat_id=message.from_user.id, caption = caption, parse_mode = ParseMode.HTML, reply_markup = reply_markup, protect_content=PROTECT_CONTENT)
+                snt_msg = await msg.copy(chat_id=message.from_user.id, caption=caption, parse_mode=ParseMode.HTML, reply_markup=reply_markup, protect_content=PROTECT_CONTENT)
+                snt_msgs.append(snt_msg)
+            except:
+                pass
+
+        SD = await message.reply_text(f"<b>{message.from_user.mention}</b>! The Special Message will be deleted After 60 seconds. Save It to the Saved Message now!")
+        await delete_message(SD, 60)  # Schedule deletion after 60 seconds
+
+        for snt_msg in snt_msgs:
+            try:
+                await snt_msg.delete()
+                lastMsg = await message.reply_text("Thanks For using Me.See You Soon Again")
             except:
                 pass
         return
@@ -103,35 +102,33 @@ async def start_command(client: Client, message: Message):
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("😊 About Me", callback_data = "about"),
-                    InlineKeyboardButton("🔒 Close", callback_data = "close")
+                    InlineKeyboardButton("😊 About Me", callback_data="about"),
+                    InlineKeyboardButton("🔒 Close", callback_data="close")
                 ]
             ]
         )
         await message.reply_text(
-            text = START_MSG.format(
-                first = message.from_user.first_name,
-                last = message.from_user.last_name,
-                username = None if not message.from_user.username else '@' + message.from_user.username,
-                mention = message.from_user.mention,
-                id = message.from_user.id
+            text=START_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username=None if not message.from_user.username else '@' + message.from_user.username,
+                mention=message.from_user.mention,
+                id=message.from_user.id
             ),
-            reply_markup = reply_markup,
-            disable_web_page_preview = True,
-            quote = True
+            reply_markup=reply_markup,
+            disable_web_page_preview=True,
+            quote=True
         )
         return
 
-    
-        
+
 #=====================================================================================##
 
 WAIT_MSG = """"<b>Processing ...</b>"""
 
-REPLY_ERROR = """<code>Use this command as a replay to any telegram message with out any spaces.</code>"""
+REPLY_ERROR = """<code>Use this command as a reply to any telegram message without any spaces.</code>"""
 
 #=====================================================================================##
-
     
     
 @Bot.on_message(filters.command('start') & filters.private)

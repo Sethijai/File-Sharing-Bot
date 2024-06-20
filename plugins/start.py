@@ -92,8 +92,8 @@ async def start_command(client: Client, message: Message):
         reply_markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("⚡️ ᴀʙᴏᴜᴛ", callback_data="about"),
-                    InlineKeyboardButton('🍁 Youtube', url='https://youtube.com/@ultroidofficial')
+                    InlineKeyboardButton("⚡️ 𝗔𝗱𝗱𝗹𝗶𝘀𝘁", url='https://t.me/addlist/rMLA4niKz9xjYjg1'),
+                    InlineKeyboardButton('🍁 Youtube', url='https://youtube.com/@Team_Opmaster')
                 ]
             ]
         )

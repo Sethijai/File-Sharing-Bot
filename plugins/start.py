@@ -90,12 +90,12 @@ async def start_command(client: Client, message: Message):
         return
     else:
         reply_markup = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("⚡️ 𝗔𝗱𝗱𝗹𝗶𝘀𝘁", url='https://t.me/addlist/rMLA4niKz9xjYjg1'),
-                    InlineKeyboardButton('🍁 Youtube', url='https://youtube.com/@Team_Opmaster')
-                ]
-            ]
+            [[
+            InlineKeyboardButton("𝗝𝗢𝗜𝗡 𝗢𝗨𝗥 𝗔𝗗𝗗𝗟𝗜𝗦𝗧 🙏", url="https://t.me/addlist/rMLA4niKz9xjYjg1")
+            ],[
+            InlineKeyboardButton("𝐒𝐓𝐔𝐅𝐅 𝐁𝐎𝐓", url="https://t.me/opmastermaterials_bot"), 
+            InlineKeyboardButton("ONLINE WATCH", url="https://t.me/OPFILE2STREAMBOT")
+            ]]
         )
         await message.reply_text(
             text=START_MSG.format(

@@ -91,10 +91,12 @@ async def start_command(client: Client, message: Message):
     else:
         reply_markup = InlineKeyboardMarkup(
             [[
-            InlineKeyboardButton("𝗝𝗢𝗜𝗡 𝗢𝗨𝗥 𝗔𝗗𝗗𝗟𝗜𝗦𝗧 🙏", url="https://t.me/addlist/rMLA4niKz9xjYjg1")
+            InlineKeyboardButton("𝗝𝗢𝗜𝗡 𝗢𝗨𝗥 𝗡𝗘𝗪 𝗔𝗗𝗗𝗟𝗜𝗦𝗧 🙏", url="https://t.me/addlist/0W1WED6AnkI4Zjg9")
             ],[
-            InlineKeyboardButton("𝐒𝐓𝐔𝐅𝐅 𝐁𝐎𝐓", url="https://t.me/opmastermaterials_bot"), 
-            InlineKeyboardButton("ONLINE WATCH", url="https://t.me/OPFILE2STREAMBOT")
+            InlineKeyboardButton("𝐀𝐏𝐍𝐈 𝐊𝐀𝐊𝐒𝐇𝐀 𝐁𝐎𝐓 😈", url="https://t.me/HIDDEN_LEAKED_BOT")
+            ],[
+            InlineKeyboardButton("Team Hidden", url="https://t.me/HIDDEN_OFFICIALS_1"),
+            InlineKeyboardButton("ᴛᴇsᴛ sᴇʀɪᴇs", url="https://t.me/+Fpzh5FbKcoNhZGZl")
             ]]
         )
         await message.reply_text(
